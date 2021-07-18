@@ -20,6 +20,13 @@ public class MemoryManager implements ManagementInterface {
 
     private final int STACKSEGMENTSIZE = 64; // Tamanho do segmento da pilha
 
+    /*
+    primeira vez que ele roda p1:
+    [t,t,d1,d1,d1,d1,pi1,pi1,0,0,,0,0,0,0,0,.......]
+
+    segunda vez que ele roda p2:
+    [t,t,d1,d1,d1,d1,pi1,pi1,asda,dasdasd,0,0,0d2,d2,d2,d2,pi2,pi2,0,00,00,0.........]
+    */
 
     // cada quadro tem 32 bytes 
 
@@ -41,12 +48,8 @@ public class MemoryManager implements ManagementInterface {
         this.mapaDeBits = new int[qtdQuadrosASeremGerenciados];
         for (int i = 0; i < this.mapaDeBits.length; i++) 
             this.mapaDeBits[i] = 0;
-            
-        this.mapaDeBits[0] = 1;
-        this.mapaDeBits[1] = 1;
-        this.mapaDeBits[3] = 1;
-        this.mapaDeBits[10] = 1;
-        this.mapaDeBits[20] = 1;
+          
+        
         this.n = 0;
     }
 
@@ -56,11 +59,6 @@ public class MemoryManager implements ManagementInterface {
         int textSegmentSize = 0; // Tamanho do segmento de texto
         int dataSegmentSize = 0; // Tamanho do segmento de dados
         String fileName; // NomeDoArquivo
-
-
-        //HashMap<String, TabelaDePaginas> informacoesProjeto = new HashMap<String, TabelaDePaginas>();
-        //HashMap<String, String> nomeProjeto = new HashMap<String, String>();
-        // precisar checar se programas são idênticos
 
         try {   
 
@@ -142,15 +140,16 @@ public class MemoryManager implements ManagementInterface {
 
             TabelaDePaginas tablePage = new TabelaDePaginas();
 
+
             this.listaTabelasDePaginas.put(n,tablePage);
             this.listaDeProcessos.put(n,processName);
             processId = this.n;
             this.n += 1;
 
-            this.listaTabelasDePaginas.forEach(
+            /*this.listaTabelasDePaginas.forEach(
                 (k,v)->System.
                 out.println("Id : " + k + "\nTabela ligada ao processo : " + v )
-            );
+            );*/
 
             //System.out.println("Lista : " + this.listaTabelasDePaginas.toString());
 
@@ -159,31 +158,44 @@ public class MemoryManager implements ManagementInterface {
                 // alocar para os dados
                 // pilha sempre aloca 2 quadros
 
-            
-            // tamanho do processo: seg de texto + seg de dados + 64
-            int[] result = this.worstFit(textSegmentSize + dataSegmentSize + this.STACKSEGMENTSIZE);
+            int aux1 = this.qtdDeQuadros(textSegmentSize); 
+            int aux2 = this.qtdDeQuadros(dataSegmentSize);
 
-            for (int i = result[1]; i < result[1] + result[2]; i++) {
+            tablePage.byteFinalSegDados = aux1 * 32 + dataSegmentSize - 1;
+
+            // tamanho do processo: seg de texto + seg de dados + 64
+            int result = this.worstFit(aux1 + aux2 + 2);
+
+            // ----------------- Parte de alocação da tabela de página
+            int j = 1;
+            for (int i = result; i < result + (aux1 + aux2 + 2); i++) {
                 System.out.println("i : " + i);
                 this.mapaDeBits[i] = 1;
-            }
-            
-            System.out.println("Nro max de quadros : " + result[0] + ". Índice : " + result[1] + ". Result[2] = " + result[2] + ".");
-            
-            
-            if (textSegmentSize % 32 == 0)
-                System.out.println("\nNro de quadros pra alocar o texto : " + (textSegmentSize / 32));
-            else {
-                System.out.println("\nNro de quadros pra alocar o texto : " + (textSegmentSize / 32 + 1));
-            }
-                
-            if (dataSegmentSize % 32 == 0)
-                System.out.println("Nro de quadros pra alocar os dados : " + (dataSegmentSize / 32));
-            else {
-                System.out.println("Nro de quadros pra alocar os dados : " + (dataSegmentSize / 32 + 1));
-            }
-            
 
+                
+                if (j <= this.qtdDeQuadros(textSegmentSize)) {
+                    tablePage.allocateTextSegment(i);
+                    j++;
+                    continue;
+                }
+                
+                if (j > this.qtdDeQuadros(textSegmentSize) + this.qtdDeQuadros(dataSegmentSize) ) {
+                    tablePage.allocateStackSegment(i);
+                    j++;
+                    continue;
+                }
+                
+                if (j > this.qtdDeQuadros(textSegmentSize)) {
+                    tablePage.allocateDataSegment(i);
+                    j++;
+                    continue;
+                }
+                
+            }
+
+            System.out.println(tablePage.toString());
+        
+            
             // ---------------------------------//------------------------------
         
         } catch (Exception ex) {
@@ -195,6 +207,14 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public int allocateMemoryToProcess(int processId, int size) {
+        try {
+
+            if(!this.listaTabelasDePaginas.containsKey(processId))
+                throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         return 5;
     }
 
@@ -233,7 +253,17 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public String getPageTable(int processId) {
+        try {
+
+            if(!this.listaTabelasDePaginas.containsKey(processId))
+                throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+
         TabelaDePaginas tabelaDePagina = this.listaTabelasDePaginas.get(processId);
+            
         return "A tabela de páginas vínculada ao processo com id : " + processId + " é a página : " + tabelaDePagina.toString();
     }
 
@@ -252,11 +282,9 @@ public class MemoryManager implements ManagementInterface {
         int indiceDoMax = -1;
         int nroMaxQuadros = 0;
 
-        int quadrosParaProcesso = (tamanhoProcesso % 32 != 0) ? (tamanhoProcesso / 32) + 1 : (tamanhoProcesso / 32);
-
         System.out.println("Tamanho do processo : " + tamanhoProcesso);
 
-        System.out.println("Quadros para o processo : " + quadrosParaProcesso);
+        System.out.println("Quadros para o processo : " + tamanhoProcesso);
 
         while(i < this.qtdQuadrosASeremGerenciados) {
             if (this.mapaDeBits[i] == 0) {
@@ -267,7 +295,7 @@ public class MemoryManager implements ManagementInterface {
                     nroQuadros++;
                     j++;
                 }
-                if (nroQuadros >= quadrosParaProcesso) {
+                if (nroQuadros >= tamanhoProcesso) {
                     if (nroQuadros > nroMaxQuadros) {
                         nroMaxQuadros = nroQuadros;
                         indiceDoMax = indice;
@@ -277,8 +305,11 @@ public class MemoryManager implements ManagementInterface {
             }
             i++;
         }
-        
-        return new int[] {nroMaxQuadros, indiceDoMax, quadrosParaProcesso};
+        return indiceDoMax;
+    }
+
+    private int qtdDeQuadros(int tamanho) {
+        return (tamanho % 32 != 0) ? (tamanho / 32) + 1 : (tamanho / 32);
     }
     
 }
