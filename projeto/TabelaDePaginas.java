@@ -1,8 +1,8 @@
 package projeto;
 
 public class TabelaDePaginas {
-    public int isValid; // pode ser 1(válido) ou 0(inválido)
-    public Pagina[] pages = new Pagina[32];
+    public int[] isValid = new int[32]; // Armazena 1(se página válida) e 0(se página invalida)
+    public int[] paginas = new int[32]; // Armazena o endereço base do quadro de memória
 
     public TabelaDePaginas() {
 
