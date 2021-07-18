@@ -52,10 +52,14 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public int loadProcessToMemory(String processName) {
-        int processId = -1; // Id do processo que será criado
-        int textSegmentSize; // Tamanho do segmento de texto
-        int dataSegmentSize; // Tamanho do segmento de dados
+        int processId = 0; // Id do processo que será criado
+        int textSegmentSize = 0; // Tamanho do segmento de texto
+        int dataSegmentSize = 0; // Tamanho do segmento de dados
+        String fileName; // NomeDoArquivo
 
+
+        //HashMap<String, TabelaDePaginas> informacoesProjeto = new HashMap<String, TabelaDePaginas>();
+        //HashMap<String, String> nomeProjeto = new HashMap<String, String>();
         // precisar checar se programas são idênticos
 
         try {   
@@ -63,7 +67,7 @@ public class MemoryManager implements ManagementInterface {
             // ------------ Sessão de carregar e validar o arquivo -----
             File programFile = new File(processName + ".txt");
 
-            System.out.println("File exists: " + programFile.exists());
+            //System.out.println("File exists: " + programFile.exists());
 
             if (!programFile.exists()) // Se arquivo não for encontrado
                 throw new NoSuchFileException("Arquivo inválido ou não encontrado.");
@@ -72,35 +76,68 @@ public class MemoryManager implements ManagementInterface {
 
             // ----------- Sessão de leitura do arquivo -----------
             Scanner scanner = new Scanner(programFile);
-
-            System.out.println(scanner.next());
-            System.out.println(scanner.next()); // nome  = ...
-            System.out.println(scanner.next());
-            textSegmentSize = scanner.nextInt();
-            System.out.println("textSegmentSize : " + textSegmentSize);
-            System.out.println(scanner.next());
-            dataSegmentSize = scanner.nextInt();
-            System.out.println("dataSegmentSize : " + dataSegmentSize);
-            
-            scanner.close(); // Fechar o arquivo
-            
-            /*
-            { 
-                0 : {
-                    nome: "p1",
-                    tabela: tablePage,
-                },
-                1 : {
-                    nome: "p2",
-                    tabela: tablePage2,
-                },
+            int index = 1;
+            while(true)
+            {   
+                Integer currentValue;
+                String currentTitle;
+                if (index == 1)
+                {
+                    currentTitle = scanner.next();
+                    if (new String("program").equals(currentTitle))
+                    {
+                        fileName = scanner.next();
+                    } else
+                    {
+                        throw new NoSuchFileException("Arquivo "+processName+" corrompido");
+                    }
+                } else if (index == 3)
+                {
+                    currentTitle = scanner.next();
+                    if (new String("text").equals(currentTitle))
+                    {
+                        try {
+                            currentValue = scanner.nextInt();
+                            textSegmentSize = currentValue;
+                        } catch (InputMismatchException e) {
+                            throw new NoSuchFileException("Arquivo "+processName+" corrompido");
+                        }
+                    } else
+                    {
+                        throw new NoSuchFileException("Arquivo "+processName+" corrompido");
+                    }
+                    
+                } else if (index == 5)
+                {
+                    currentTitle = scanner.next();
+                    if (new String("data").equals(currentTitle))
+                    {
+                        try {
+                            currentValue = scanner.nextInt();
+                            dataSegmentSize = currentValue;
+                        } catch (InputMismatchException e) {
+                            throw new NoSuchFileException("Arquivo "+processName+" corrompido");
+                        }
+                    } else
+                    {
+                        throw new NoSuchFileException("Arquivo "+processName+" corrompido");
+                    }
+                }
+                if (index == 6)
+                {
+                    break;
+                }
+                index++;
             }
-            */
+            scanner.close(); // Fechar o arquivo
+
+
+            System.out.println("\n");
 
             // -------------------//---------------------------------
 
             // ------------ Sessão de carregar o processo na memória -----------
-
+            processId = this.n;
             // 1. criação de uma tabela de página para representar o processo:
 
             TabelaDePaginas tablePage = new TabelaDePaginas();
@@ -110,8 +147,10 @@ public class MemoryManager implements ManagementInterface {
             processId = this.n;
             this.n += 1;
 
-
-            this.listaTabelasDePaginas.forEach((k,v)->System.out.println("Id : " + k + "Tabela ligada ao processo : " + v.toString()));
+            this.listaTabelasDePaginas.forEach(
+                (k,v)->System.
+                out.println("Id : " + k + "\nTabela ligada ao processo : " + v )
+            );
 
             //System.out.println("Lista : " + this.listaTabelasDePaginas.toString());
 
@@ -133,24 +172,24 @@ public class MemoryManager implements ManagementInterface {
             
             
             if (textSegmentSize % 32 == 0)
-                System.out.println("Nro de quadros pra alocar o texto : " + (textSegmentSize / 32));
+                System.out.println("\nNro de quadros pra alocar o texto : " + (textSegmentSize / 32));
             else {
-                System.out.println("Nro de quadros pra alocar o texto : " + (textSegmentSize / 32 + 1));
+                System.out.println("\nNro de quadros pra alocar o texto : " + (textSegmentSize / 32 + 1));
             }
                 
             if (dataSegmentSize % 32 == 0)
                 System.out.println("Nro de quadros pra alocar os dados : " + (dataSegmentSize / 32));
             else {
-                System.out.println("Nro de quadros pra alocar os dados : " + (dataSegmentSize / 32)+1);
+                System.out.println("Nro de quadros pra alocar os dados : " + (dataSegmentSize / 32 + 1));
             }
             
 
             // ---------------------------------//------------------------------
         
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+            System.out.println("\n|-------------------------|\n");
         return processId;
     }
 
