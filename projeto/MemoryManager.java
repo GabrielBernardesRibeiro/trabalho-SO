@@ -94,7 +94,7 @@ public class MemoryManager implements ManagementInterface {
                         fileName = scanner.next();
                     } else
                     {
-                        throw new CorruptedFileException("Arquivo "+processName+" corrompido");
+                        throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                     }
                 } else if (index == 3)
                 {
@@ -105,11 +105,11 @@ public class MemoryManager implements ManagementInterface {
                             currentValue = scanner.nextInt();
                             textSegmentSize = currentValue;
                         } catch (InputMismatchException e) {
-                            throw new CorruptedFileException("Arquivo "+processName+" corrompido");
+                            throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                         }
                     } else
                     {
-                        throw new CorruptedFileException("Arquivo "+processName+" corrompido");
+                        throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                     }
                     
                 } else if (index == 5)
@@ -121,11 +121,11 @@ public class MemoryManager implements ManagementInterface {
                             currentValue = scanner.nextInt();
                             dataSegmentSize = currentValue;
                         } catch (InputMismatchException e) {
-                            throw new CorruptedFileException("Arquivo "+processName+" corrompido");
+                            throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                         }
                     } else
                     {
-                        throw new CorruptedFileException("Arquivo "+processName+" corrompido");
+                        throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                     }
                 }
                 if (index == 6)
@@ -136,20 +136,7 @@ public class MemoryManager implements ManagementInterface {
             }
             scanner.close(); // Fechar o arquivo
 
-            /*
-            scanner.next();
-            System.out.println("Projeto: "+scanner.next());
 
-            scanner.next();
-            textSegmentSize = scanner.nextInt();
-            System.out.println("textSegmentSize : " + textSegmentSize);
-
-            scanner.next();
-            dataSegmentSize = scanner.nextInt();
-            System.out.println("dataSegmentSize : " + dataSegmentSize);
-            
-            scanner.close(); // Fechar o arquivo
-            */
             System.out.println("\n");
 
             // -------------------//---------------------------------
