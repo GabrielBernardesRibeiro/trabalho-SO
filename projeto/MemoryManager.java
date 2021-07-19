@@ -165,7 +165,7 @@ public class MemoryManager implements ManagementInterface {
                     continue;
                 }
                 
-                if (j > quantidade_quadros_texto ) 
+                if (j > quantidade_quadros_texto )
                 {
                     tabela_pagina_atual.alocar_segmento_data(i);
                     j++;
@@ -173,6 +173,7 @@ public class MemoryManager implements ManagementInterface {
                 }
                 
             }
+            tabela_pagina_atual.set_byte_final_segmento_dados();
 
             System.out.println( tabela_pagina_atual.toString() );
         
@@ -192,6 +193,27 @@ public class MemoryManager implements ManagementInterface {
 
             if(!this.lista_tabela_de_paginas.containsKey(id_do_processo_atual))
                 throw new InvalidProcessException("O processo de Id = " + id_do_processo_atual + " é inválido.");
+                
+            TabelaDePaginas tbP = this.lista_tabela_de_paginas.get(id_do_processo_atual);
+
+            int restoParaAlocar = size - tbP.faltandoDosegmentoDeDadosEstatico(); 
+            System.out.println("Resto pra alocar : " + restoParaAlocar);
+            System.out.println("Byte final : " + tbP.get_byte_final_segmento_dados());
+
+            //System.out.println("Era pra dar doze, kkkkk : " + 12);
+
+            int indiceParaAlocarHeap = this.worstFit(tbP.get_quantidade_de_quadros(restoParaAlocar));
+
+            for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.get_quantidade_de_quadros(restoParaAlocar); i++) {
+                System.out.println( "I do allocate : " + i );  
+                tbP.alocarHeap(i);
+                this.mapa_de_bits[i] = 1;
+            } // Falta setar o final do segmento de dados novo
+
+            System.out.println("Antes alocar heap");
+            //String penis = tbP.alocarHeap(indiceParaAlocarHeap);
+            //System.out.println( "Penis : " + penis );
+            System.out.println( tbP.toString() );
 
         } catch (Exception ex) {
             ex.printStackTrace();

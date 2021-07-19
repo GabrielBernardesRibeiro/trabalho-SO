@@ -7,8 +7,8 @@ public class Aux {
             MemoryManager mm = new MemoryManager(32);
             int id = mm.loadProcessToMemory("p1");
             //System.out.println("Id do processo: " + id);
-            int id2 = mm.loadProcessToMemory("p1");
-            //mm.allocateMemoryToProcess(15,15);
+            //int id2 = mm.loadProcessToMemory("p1");
+            mm.allocateMemoryToProcess(0,100);
             //System.out.println("Id2 do processo: " + id2);
             System.out.println(mm.getBitMap());
         } catch (Exception ex) {

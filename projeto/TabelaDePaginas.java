@@ -14,7 +14,10 @@ public class TabelaDePaginas {
     private int quantidade_quadros_texto;
     private int quantidade_quadros_dados;
 
-    public int memoriaTotal;
+    
+    // vai ter q ter uma pilha
+
+
     public boolean trinta = true;
 
     public TabelaDePaginas(int tamanho_segmento_texto, int tamanho_segmento_dados) {
@@ -23,7 +26,7 @@ public class TabelaDePaginas {
         this.set_tamanho_segmento_dados(tamanho_segmento_dados);
         this.set_quantidade_quadros_texto(tamanho_segmento_texto);
         this.set_quantidade_quadros_dados(tamanho_segmento_dados);
-        this.set_byte_final_segmento_dados(this.get_quantidade_quadros_texto(), this.get_tamanho_segmento_dados());
+        //this.set_byte_final_segmento_dados();
     }
 
     public int get_tamanho_segmento_texto()
@@ -71,12 +74,12 @@ public class TabelaDePaginas {
         return this.byte_final_segmento_dados;
     }
 
-    private void set_byte_final_segmento_dados(int quantidade_quadros_texto, int tamanho_segmento_dados)
+    public void set_byte_final_segmento_dados()
     {
-        this.byte_final_segmento_dados = (quantidade_quadros_texto * this.get_tamanho_quadro_de_bits() ) + tamanho_segmento_dados - 1;
+        this.byte_final_segmento_dados = this.getByteInicial() + (this.get_quantidade_quadros_texto() * this.get_tamanho_quadro_de_bits() ) + this.get_tamanho_segmento_dados() - 1;
     }
 
-    private int get_quantidade_de_quadros(int total_de_bits) {
+    public int get_quantidade_de_quadros(int total_de_bits) {
         return (total_de_bits % 32 != 0) ? (total_de_bits / 32) + 1 : (total_de_bits / 32);
     }
 
@@ -122,6 +125,32 @@ public class TabelaDePaginas {
         }
         this.isValid[31] = 1;
         this.paginas[31] = i * this.get_tamanho_quadro_de_bits();
+    }
+
+    public int getByteInicial() {
+        return this.paginas[0];
+    }
+
+
+    public void alocarHeap(int indiceNaMemoria) {
+        //System.out.println("N :kkkkkkadkaskdasld " + n);
+        int n;
+        for (n = 0; n < this.paginas.length; n++) {
+            if (this.isValid[n] == 0)
+                break;
+        }
+        /*
+        for () {
+
+        }
+        */
+        //System.out.println("N :kkkkkkadkaskdasld " + n);
+        this.paginas[n] = indiceNaMemoria * 32;
+        this.isValid[n] = 1;
+    }
+
+    public int faltandoDosegmentoDeDadosEstatico() {
+       return (this.get_byte_final_segmento_dados() % 32) == 0 ? 0 : (((this.get_quantidade_quadros_texto() + this.get_quantidade_quadros_dados()) * 32) - 1 - (this.get_byte_final_segmento_dados() + 1));
     }
 
     @Override
