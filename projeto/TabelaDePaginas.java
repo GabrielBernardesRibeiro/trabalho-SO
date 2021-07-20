@@ -1,18 +1,18 @@
 package projeto;
 
 public class TabelaDePaginas {
-    private final int tamanho_quadro_de_bits = 32;
-    private final int index_inicial = 0;
-    public int[] isValid = new int[tamanho_quadro_de_bits]; // Armazena 1(se página válida) e 0(se página invalida)
-    public int[] paginas = new int[tamanho_quadro_de_bits]; // Armazena o endereço base do quadro de memória
+    private final int tamanhoQuadroDeBits = 32;
+    private final int indexInicial = 0;
+    public int[] isValid = new int[tamanhoQuadroDeBits]; // Armazena 1(se página válida) e 0(se página invalida)
+    public int[] paginas = new int[tamanhoQuadroDeBits]; // Armazena o endereço base do quadro de memória
     private int index;
     
 
-    private int byte_final_segmento_dados; // Começar o heap no byteFinalSegDados+1
-    private int tamanho_segmento_texto;
-    private int tamanho_segmento_dados;
-    private int quantidade_quadros_texto;
-    private int quantidade_quadros_dados;
+    private int byteFinalSegmentoDados; // Começar o heap no byteFinalSegDados+1
+    private int tamanhoSegmentoTexto;
+    private int tamanhoSegmentoDados;
+    private int quantidadeQuadrosTexto;
+    private int quantidadeQuadrosDados;
 
     
     // vai ter q ter uma pilha
@@ -20,111 +20,110 @@ public class TabelaDePaginas {
 
     public boolean trinta = true;
 
-    public TabelaDePaginas(int tamanho_segmento_texto, int tamanho_segmento_dados) {
-        this.set_index(this.get_index_inicial());
-        this.set_tamanho_segmento_texto(tamanho_segmento_texto);
-        this.set_tamanho_segmento_dados(tamanho_segmento_dados);
-        this.set_quantidade_quadros_texto(tamanho_segmento_texto);
-        this.set_quantidade_quadros_dados(tamanho_segmento_dados);
-        //this.set_byte_final_segmento_dados();
+    public TabelaDePaginas(int tamanhoSegmentoTexto, int tamanhoSegmentoDados) {
+        this.setIndex(this.getIndexInicial());
+        this.setTamanhoSegmentoTexto(tamanhoSegmentoTexto);
+        this.setTamanhoSegmentoDados(tamanhoSegmentoDados);
+        this.setQuantidadeQuadrosTexto(tamanhoSegmentoTexto);
+        this.setQuantidadeQuadrosDados(tamanhoSegmentoDados);
     }
 
-    public int get_tamanho_segmento_texto()
+    public int getTamanhoSegmentoTexto()
     {
-        return this.tamanho_segmento_texto;
+        return this.tamanhoSegmentoTexto;
     }
 
-    private void set_tamanho_segmento_texto(int tamanho_segmento_texto)
+    private void setTamanhoSegmentoTexto(int tamanhoSegmentoTexto)
     {
-        this.tamanho_segmento_texto = tamanho_segmento_texto;
+        this.tamanhoSegmentoTexto = tamanhoSegmentoTexto;
     }
 
-    public int get_tamanho_segmento_dados()
+    public int getTamanhoSegmentoDados()
     {
-        return this.tamanho_segmento_dados;
+        return this.tamanhoSegmentoDados;
     }
 
-    private void set_tamanho_segmento_dados(int tamanho_segmento_dados)
+    private void setTamanhoSegmentoDados(int tamanhoSegmentoDados)
     {
-        this.tamanho_segmento_dados = tamanho_segmento_dados;
+        this.tamanhoSegmentoDados = tamanhoSegmentoDados;
     }
 
-    public int get_quantidade_quadros_texto()
+    public int getQuantidadeQuadrosTexto()
     {
-        return this.quantidade_quadros_texto;
+        return this.quantidadeQuadrosTexto;
     }
 
-    private void set_quantidade_quadros_texto(int tamanho_segmento_texto)
+    private void setQuantidadeQuadrosTexto(int tamanhoSegmentoTexto)
     {
-        this.quantidade_quadros_texto = this.get_quantidade_de_quadros(tamanho_segmento_texto);
+        this.quantidadeQuadrosTexto = this.getQuantidadeDeQuadros(tamanhoSegmentoTexto);
     }
 
-    public int get_quantidade_quadros_dados()
+    public int getQuantidadeQuadrosDados()
     {
-        return this.quantidade_quadros_dados;
+        return this.quantidadeQuadrosDados;
     }
 
-    private void set_quantidade_quadros_dados(int tamanho_segmento_dados)
+    private void setQuantidadeQuadrosDados(int tamanhoSegmentoDados)
     {
-        this.quantidade_quadros_dados = this.get_quantidade_de_quadros(tamanho_segmento_dados);
+        this.quantidadeQuadrosDados = this.getQuantidadeDeQuadros(tamanhoSegmentoDados);
     }
 
-    public int get_byte_final_segmento_dados()
+    public int getByteFinalSegmentoDados()
     {
-        return this.byte_final_segmento_dados;
+        return this.byteFinalSegmentoDados;
     }
 
-    public void set_byte_final_segmento_dados()
+    public void setByteFinalSegmentoDados()
     {
-        this.byte_final_segmento_dados = this.getByteInicial() + (this.get_quantidade_quadros_texto() * this.get_tamanho_quadro_de_bits() ) + this.get_tamanho_segmento_dados() - 1;
+        this.byteFinalSegmentoDados = this.getByteInicial() + (this.getQuantidadeQuadrosTexto() * this.getTamanhoQuadroDeBits() ) + this.getTamanhoSegmentoDados() - 1;
     }
 
-    public int get_quantidade_de_quadros(int total_de_bits) {
-        return (total_de_bits % 32 != 0) ? (total_de_bits / 32) + 1 : (total_de_bits / 32);
+    public int getQuantidadeDeQuadros(int totalDeBits) {
+        return (totalDeBits % 32 != 0) ? (totalDeBits / 32) + 1 : (totalDeBits / 32);
     }
 
-    private void set_index(int index_novo)
+    private void setIndex(int indexNovo)
     {
-        this.index = index_novo;
+        this.index = indexNovo;
     }
 
-    private int get_index()
+    private int getIndex()
     {
         return this.index;
     }
 
-    private int get_index_inicial()
+    private int getIndexInicial()
     {
-        return this.index_inicial;
+        return this.indexInicial;
     }
 
-    private int get_tamanho_quadro_de_bits()
+    private int getTamanhoQuadroDeBits()
     {
-        return this.tamanho_quadro_de_bits;
+        return this.tamanhoQuadroDeBits;
     }
 
-    public void alocar_segmento_texto(int i) {
-        int index_atual = this.get_index();
-        this.isValid[index_atual] = 1;
-        this.paginas[index_atual] = i * this.get_tamanho_quadro_de_bits();
-        this.set_index(index_atual + 1);
+    public void alocarSegmentoTexto(int i) {
+        int indexAtual = this.getIndex();
+        this.isValid[indexAtual] = 1;
+        this.paginas[indexAtual] = i * this.getTamanhoQuadroDeBits();
+        this.setIndex(indexAtual + 1);
     }
 
-    public void alocar_segmento_data(int i) {
-        int index_atual = this.get_index();
-        this.isValid[index_atual] = 1;
-        this.paginas[index_atual] = i * this.get_tamanho_quadro_de_bits();
-        this.set_index(index_atual + 1);
+    public void alocarSegmentoData(int i) {
+        int indexAtual = this.getIndex();
+        this.isValid[indexAtual] = 1;
+        this.paginas[indexAtual] = i * this.getTamanhoQuadroDeBits();
+        this.setIndex(indexAtual + 1);
     }
 
-    public void alocar_segmento_stack(int i) {
+    public void alocarSegmentoStack(int i) {
         if (this.trinta) {
             this.isValid[30] = 1;
-            this.paginas[30] = i * this.get_tamanho_quadro_de_bits();
+            this.paginas[30] = i * this.getTamanhoQuadroDeBits();
             this.trinta = false;
         }
         this.isValid[31] = 1;
-        this.paginas[31] = i * this.get_tamanho_quadro_de_bits();
+        this.paginas[31] = i * this.getTamanhoQuadroDeBits();
     }
 
     public int getByteInicial() {
@@ -133,24 +132,17 @@ public class TabelaDePaginas {
 
 
     public void alocarHeap(int indiceNaMemoria) {
-        //System.out.println("N :kkkkkkadkaskdasld " + n);
         int n;
         for (n = 0; n < this.paginas.length; n++) {
             if (this.isValid[n] == 0)
                 break;
         }
-        /*
-        for () {
-
-        }
-        */
-        //System.out.println("N :kkkkkkadkaskdasld " + n);
         this.paginas[n] = indiceNaMemoria * 32;
         this.isValid[n] = 1;
     }
 
     public int faltandoDosegmentoDeDadosEstatico() {
-       return (this.get_byte_final_segmento_dados() % 32) == 0 ? 0 : (((this.get_quantidade_quadros_texto() + this.get_quantidade_quadros_dados()) * 32) - 1 - (this.get_byte_final_segmento_dados() + 1));
+       return (this.getByteFinalSegmentoDados() % 32) == 0 ? 0 : (((this.getQuantidadeQuadrosTexto() + this.getQuantidadeQuadrosDados()) * 32) - 1 - (this.getByteFinalSegmentoDados() + 1));
     }
 
     @Override
@@ -166,7 +158,7 @@ public class TabelaDePaginas {
             pages += this.paginas[n] + ",";
             validos += this.isValid[n] + ",";
         }
-        return "Validos : " + validos + "\nPaginas : " + pages + ".\n" + "Pro heap : " + this.byte_final_segmento_dados;
+        return "Validos : " + validos + "\nPaginas : " + pages + ".\n" + "Pro heap : " + this.byteFinalSegmentoDados;
     }
 
 }
