@@ -11,6 +11,8 @@ public class Aux {
             mm.allocateMemoryToProcess(0,100);
             //System.out.println("Id2 do processo: " + id2);
             System.out.println(mm.getBitMap());
+            mm.resetMemory();
+            System.out.println(mm.getBitMap());
         } catch (Exception ex) {
             ex.printStackTrace();
         }

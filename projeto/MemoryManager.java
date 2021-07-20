@@ -11,7 +11,7 @@ public class MemoryManager implements ManagementInterface {
     public int total_quadros_para_gerenciar; // 32/64/128
     public int[] mapa_de_bits; // Pode ter tamanho = 32/64/128
     public HashMap<Integer,TabelaDePaginas> lista_tabela_de_paginas = new HashMap<Integer,TabelaDePaginas>();
-    public HashMap<Integer,String> lista_de_projetos = new HashMap<Integer,String>();
+    public HashMap<Integer,String> lista_de_processos = new HashMap<Integer,String>();
     public int contador_de_id; // contagem do id do processo
     private int id_inicial = 0;
 
@@ -130,7 +130,7 @@ public class MemoryManager implements ManagementInterface {
             TabelaDePaginas tabela_pagina_atual = new TabelaDePaginas(tamanho_segmento_texto, tamanho_segmento_dados);
 
             this.set_nova_tabela_de_paginas(id_do_processo_atual, tabela_pagina_atual);
-            this.set_novo_projeto(id_do_processo_atual, nome_do_arquivo);
+            this.set_novo_processo(id_do_processo_atual, processName);
             this.icrementar_contador_id();
 
             // 2.  alocar quadros para armazenar texto e dados
@@ -233,7 +233,13 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public void resetMemory() {
-        
+        for (int i = 0; i < this.total_quadros_para_gerenciar; i++)
+            this.mapa_de_bits[i] = 0;
+
+        this.lista_tabela_de_paginas.clear();
+        this.lista_de_processos.clear(); 
+
+        // zerar var que controla ids dos processos da classe manager?
     }
 
     @Override
@@ -360,9 +366,9 @@ public class MemoryManager implements ManagementInterface {
         this.lista_tabela_de_paginas.put(id_tabela_paginas, tabela_de_pagina_nova);
     }
 
-    public void set_novo_projeto(int id_novo_projeto, String nome_novo_projeto)
+    public void set_novo_processo(int id_novo_processo, String nome_novo_processo)
     {
-        this.lista_de_projetos.put(id_novo_projeto, nome_novo_projeto);
+        this.lista_de_processos.put(id_novo_processo, nome_novo_processo);
     }
     
 }
