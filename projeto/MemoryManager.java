@@ -1,22 +1,18 @@
 package projeto;
-
-
 import exceptions.*;
-
-
 import java.io.File;
 import java.util.*;
 
 public class MemoryManager implements ManagementInterface {
-    public int total_quadros_para_gerenciar; // 32/64/128
-    public int[] mapa_de_bits; // Pode ter tamanho = 32/64/128
-    public HashMap<Integer,TabelaDePaginas> lista_tabela_de_paginas = new HashMap<Integer,TabelaDePaginas>();
-    public HashMap<Integer,String> lista_de_projetos = new HashMap<Integer,String>();
-    public int contador_de_id; // contagem do id do processo
-    private int id_inicial = 0;
+    public int totalQuadrosParaGerenciar; // 32/64/128
+    public int[] mapaDeBits; // Pode ter tamanho = 32/64/128
+    public HashMap<Integer,TabelaDePaginas> listaTabelaDePaginas = new HashMap<Integer,TabelaDePaginas>();
+    public HashMap<Integer,String> listaDeProjetos = new HashMap<Integer,String>();
+    public int contadorDeId; // contagem do id do processo
+    private int idInicial = 0;
 
     private final int STACKSEGMENTSIZE = 64; // Tamanho do segmento da pilha
-    private final int quantidade_quadros_pilha = 2;
+    private final int quantidadeQuadrosPilha = 2;
 
     /*
         primeira vez que ele roda p1:
@@ -40,25 +36,25 @@ public class MemoryManager implements ManagementInterface {
         -- Tamanho máximo de 1024 bytes
     */
 
-    public MemoryManager(int total_quadros_para_gerenciar) {
-        this.set_total_quadros_para_gerenciar(total_quadros_para_gerenciar);
-        this.inicializar_mapa_de_bits(total_quadros_para_gerenciar);
-        this.set_contador_id( this.get_id_inicial() );
+    public MemoryManager(int totalQuadrosParaGerenciar) {
+        this.setTotalQuadrosParaGerenciar(totalQuadrosParaGerenciar);
+        this.inicializarMapaDeBits(totalQuadrosParaGerenciar);
+        this.setContadorId( this.getIdInicial() );
     }
 
     @Override
     public int loadProcessToMemory(String processName) {
-        int id_do_processo_atual = 0; // Id do processo que será criado
-        int tamanho_segmento_texto = 0; // Tamanho do segmento de texto
-        int tamanho_segmento_dados = 0; // Tamanho do segmento de dados
-        String nome_do_arquivo = ""; // NomeDoArquivo
+        int idDoProcessoAtual = 0; // Id do processo que será criado
+        int tamanhoSegmentoTexto = 0; // Tamanho do segmento de texto
+        int tamanhoSegmentoDados = 0; // Tamanho do segmento de dados
+        String nomeDoArquivo = ""; // NomeDoArquivo
 
         try {   
 
             // ------------ Sessão de carregar e validar o arquivo -----
-            File programa_do_arquivo = new File(processName + ".txt");
+            File programaDoArquivo = new File(processName + ".txt");
 
-            if (programa_do_arquivo.exists() == false) // Se arquivo não for encontrado
+            if (programaDoArquivo.exists() == false) // Se arquivo não for encontrado
             {
                 throw new NoSuchFileException("Arquivo inválido ou não encontrado.");
             }
@@ -66,30 +62,30 @@ public class MemoryManager implements ManagementInterface {
             // ---------------------------------//----------------------
 
             // ----------- Sessão de leitura do arquivo -----------
-            Scanner scanner_arquivo = new Scanner(programa_do_arquivo);
-            int contador_de_leitura = 1;
+            Scanner scannerArquivo = new Scanner(programaDoArquivo);
+            int contadorDeLeitura = 1;
             while(true)
             {   
-                int valor_leitura_atual;
-                String titulo_atual;
-                if (contador_de_leitura == 1)
+                int valorLeituraAtual;
+                String tituloAtual;
+                if (contadorDeLeitura == 1)
                 {
-                    titulo_atual = scanner_arquivo.next();
-                    if (new String("program").equals(titulo_atual))
+                    tituloAtual = scannerArquivo.next();
+                    if (new String("program").equals(tituloAtual))
                     {
-                        nome_do_arquivo = scanner_arquivo.next();
+                        nomeDoArquivo = scannerArquivo.next();
                     } else
                     {
                         throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                     }
-                } else if (contador_de_leitura == 3)
+                } else if (contadorDeLeitura == 3)
                 {
-                    titulo_atual = scanner_arquivo.next();
-                    if (new String("text").equals(titulo_atual))
+                    tituloAtual = scannerArquivo.next();
+                    if (new String("text").equals(tituloAtual))
                     {
                         try {
-                            valor_leitura_atual = scanner_arquivo.nextInt();
-                            tamanho_segmento_texto = valor_leitura_atual;
+                            valorLeituraAtual = scannerArquivo.nextInt();
+                            tamanhoSegmentoTexto = valorLeituraAtual;
                         } catch (InputMismatchException e) {
                             throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                         }
@@ -98,14 +94,14 @@ public class MemoryManager implements ManagementInterface {
                         throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                     }
                     
-                } else if (contador_de_leitura == 5)
+                } else if (contadorDeLeitura == 5)
                 {
-                    titulo_atual = scanner_arquivo.next();
-                    if (new String("data").equals(titulo_atual))
+                    tituloAtual = scannerArquivo.next();
+                    if (new String("data").equals(tituloAtual))
                     {
                         try {
-                            valor_leitura_atual = scanner_arquivo.nextInt();
-                            tamanho_segmento_dados = valor_leitura_atual;
+                            valorLeituraAtual = scannerArquivo.nextInt();
+                            tamanhoSegmentoDados = valorLeituraAtual;
                         } catch (InputMismatchException e) {
                             throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                         }
@@ -114,24 +110,24 @@ public class MemoryManager implements ManagementInterface {
                         throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                     }
                 }
-                if (contador_de_leitura == 6)
+                if (contadorDeLeitura == 6)
                 {
                     break;
                 }
-                contador_de_leitura++;
+                contadorDeLeitura++;
             }
-            scanner_arquivo.close();
+            scannerArquivo.close();
 
             System.out.println("\n");
             // ------------ Sessão de carregar o processo na memória -----------
-            id_do_processo_atual = this.get_contador_id(); //this.contador_de_id
+            idDoProcessoAtual = this.getContadorId(); //this.contadorDeId
 
             // 1. criação de uma tabela de página para representar o processo:
-            TabelaDePaginas tabela_pagina_atual = new TabelaDePaginas(tamanho_segmento_texto, tamanho_segmento_dados);
+            TabelaDePaginas tabelaPaginaAtual = new TabelaDePaginas(tamanhoSegmentoTexto, tamanhoSegmentoDados);
 
-            this.set_nova_tabela_de_paginas(id_do_processo_atual, tabela_pagina_atual);
-            this.set_novo_projeto(id_do_processo_atual, nome_do_arquivo);
-            this.icrementar_contador_id();
+            this.listaTabelaDePaginas.put(idDoProcessoAtual, tabelaPaginaAtual);
+            this.listaDeProjetos.put(idDoProcessoAtual, nomeDoArquivo);
+            this.icrementarContadorId();
 
             // 2.  alocar quadros para armazenar texto e dados
                 // alocar para o texto
@@ -139,43 +135,43 @@ public class MemoryManager implements ManagementInterface {
                 // pilha sempre aloca 2 quadros
 
             // tamanho do processo: seg de texto + seg de dados + 64
-            int quantidade_quadros_texto = tabela_pagina_atual.get_quantidade_quadros_texto();
-            int quantidade_quadros_dados = tabela_pagina_atual.get_quantidade_quadros_dados();
-            int tamanho_processo = quantidade_quadros_texto + quantidade_quadros_dados + this.quantidade_quadros_pilha;
-            int retorno_worst_fit = this.worstFit(tamanho_processo);
+            int quantidadeQuadrosTexto = tabelaPaginaAtual.getQuantidadeQuadrosTexto();
+            int quantidadeQuadrosDados = tabelaPaginaAtual.getQuantidadeQuadrosDados();
+            int tamanhoProcesso = quantidadeQuadrosTexto + quantidadeQuadrosDados + this.quantidadeQuadrosPilha;
+            int retornoWorstFit = this.worstFit(tamanhoProcesso);
 
             // ----------------- Parte de alocação da tabela de página
             int j = 1;
-            for (int i = retorno_worst_fit; i < retorno_worst_fit + tamanho_processo; i++) 
+            for (int i = retornoWorstFit; i < retornoWorstFit + tamanhoProcesso; i++) 
             {
                 System.out.println("i : " + i);
-                this.mapa_de_bits[i] = 1;
+                this.mapaDeBits[i] = 1;
                 
-                if (j <= quantidade_quadros_texto ) 
+                if (j <= quantidadeQuadrosTexto ) 
                 {
-                    tabela_pagina_atual.alocar_segmento_texto(i);
+                    tabelaPaginaAtual.alocarSegmentoTexto(i);
                     j++;
                     continue;
                 }
                 
-                if (j > quantidade_quadros_texto + quantidade_quadros_dados ) 
+                if (j > quantidadeQuadrosTexto + quantidadeQuadrosDados ) 
                 {
-                    tabela_pagina_atual.alocar_segmento_stack(i);
+                    tabelaPaginaAtual.alocarSegmentoStack(i);
                     j++;
                     continue;
                 }
                 
-                if (j > quantidade_quadros_texto )
+                if (j > quantidadeQuadrosTexto )
                 {
-                    tabela_pagina_atual.alocar_segmento_data(i);
+                    tabelaPaginaAtual.alocarSegmentoData(i);
                     j++;
                     continue;
                 }
                 
             }
-            tabela_pagina_atual.set_byte_final_segmento_dados();
+            tabelaPaginaAtual.setByteFinalSegmentoDados();
 
-            System.out.println( tabela_pagina_atual.toString() );
+            System.out.println( tabelaPaginaAtual.toString() );
         
             
             // ---------------------------------//------------------------------
@@ -184,30 +180,30 @@ public class MemoryManager implements ManagementInterface {
             ex.printStackTrace();
         }
         System.out.println("\n|-------------------------|\n");
-        return id_do_processo_atual;
+        return idDoProcessoAtual;
     }
 
     @Override
-    public int allocateMemoryToProcess(int id_do_processo_atual, int size) {
+    public int allocateMemoryToProcess(int idDoProcessoAtual, int size) {
         try {
 
-            if(!this.lista_tabela_de_paginas.containsKey(id_do_processo_atual))
-                throw new InvalidProcessException("O processo de Id = " + id_do_processo_atual + " é inválido.");
+            if(!this.listaTabelaDePaginas.containsKey(idDoProcessoAtual))
+                throw new InvalidProcessException("O processo de Id = " + idDoProcessoAtual + " é inválido.");
                 
-            TabelaDePaginas tbP = this.lista_tabela_de_paginas.get(id_do_processo_atual);
+            TabelaDePaginas tbP = this.listaTabelaDePaginas.get(idDoProcessoAtual);
 
             int restoParaAlocar = size - tbP.faltandoDosegmentoDeDadosEstatico(); 
             System.out.println("Resto pra alocar : " + restoParaAlocar);
-            System.out.println("Byte final : " + tbP.get_byte_final_segmento_dados());
+            System.out.println("Byte final : " + tbP.getByteFinalSegmentoDados());
 
             //System.out.println("Era pra dar doze, kkkkk : " + 12);
 
-            int indiceParaAlocarHeap = this.worstFit(tbP.get_quantidade_de_quadros(restoParaAlocar));
+            int indiceParaAlocarHeap = this.worstFit(tbP.getQuantidadeDeQuadros(restoParaAlocar));
 
-            for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.get_quantidade_de_quadros(restoParaAlocar); i++) {
+            for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.getQuantidadeDeQuadros(restoParaAlocar); i++) {
                 System.out.println( "I do allocate : " + i );  
                 tbP.alocarHeap(i);
-                this.mapa_de_bits[i] = 1;
+                this.mapaDeBits[i] = 1;
             } // Falta setar o final do segmento de dados novo
 
             System.out.println("Antes alocar heap");
@@ -222,12 +218,12 @@ public class MemoryManager implements ManagementInterface {
     }
 
     @Override
-    public int freeMemoryFromProcess(int id_do_processo_atual, int size) {
+    public int freeMemoryFromProcess(int idDoProcessoAtual, int size) {
         return 5;
     }
 
     @Override
-    public void excludeProcessFromMemory(int id_do_processo_atual) {
+    public void excludeProcessFromMemory(int idDoProcessoAtual) {
         
     }
 
@@ -237,37 +233,37 @@ public class MemoryManager implements ManagementInterface {
     }
 
     @Override
-    public int getPhysicalAddress(int id_do_processo_atual, int logicalAddress) {
+    public int getPhysicalAddress(int idDoProcessoAtual, int logicalAddress) {
         return 5;
     }
 
     @Override
     public String getBitMap() {
         String x = "[";
-        for (int j = 0; j < this.mapa_de_bits.length; j++) {
-            if (j == this.mapa_de_bits.length - 1) {
-                x += this.mapa_de_bits[j] + "]";
+        for (int j = 0; j < this.mapaDeBits.length; j++) {
+            if (j == this.mapaDeBits.length - 1) {
+                x += this.mapaDeBits[j] + "]";
                 break;
             }
-            x += this.mapa_de_bits[j] +  ", "; 
+            x += this.mapaDeBits[j] +  ", "; 
         }
         return x;
     }
 
     @Override
-    public String getPageTable(int id_do_processo_atual) {
+    public String getPageTable(int idDoProcessoAtual) {
         try {
 
-            if(!this.lista_tabela_de_paginas.containsKey(id_do_processo_atual))
-                throw new InvalidProcessException("O processo de Id = " + id_do_processo_atual + " é inválido.");
+            if(!this.listaTabelaDePaginas.containsKey(idDoProcessoAtual))
+                throw new InvalidProcessException("O processo de Id = " + idDoProcessoAtual + " é inválido.");
 
         } catch(Exception ex) {
             ex.printStackTrace();
         }
 
-        TabelaDePaginas tabela_pagina_atual = this.lista_tabela_de_paginas.get(id_do_processo_atual);
+        TabelaDePaginas tabelaPaginaAtual = this.listaTabelaDePaginas.get(idDoProcessoAtual);
             
-        return "A tabela de páginas vínculada ao processo com id : " + id_do_processo_atual + " é a página : " + tabela_pagina_atual.toString();
+        return "A tabela de páginas vínculada ao processo com id : " + idDoProcessoAtual + " é a página : " + tabelaPaginaAtual.toString();
     }
 
     @Override
@@ -289,12 +285,12 @@ public class MemoryManager implements ManagementInterface {
 
         System.out.println("Quadros para o processo : " + tamanhoProcesso);
 
-        while(i < this.total_quadros_para_gerenciar) {
-            if (this.mapa_de_bits[i] == 0) {
+        while(i < this.totalQuadrosParaGerenciar) {
+            if (this.mapaDeBits[i] == 0) {
                 nroQuadros = 0;
                 indice = i;
                 j = i;
-                while (j < this.mapa_de_bits.length && this.mapa_de_bits[j] != 1 ) {
+                while (j < this.mapaDeBits.length && this.mapaDeBits[j] != 1 ) {
                     nroQuadros++;
                     j++;
                 }
@@ -311,58 +307,48 @@ public class MemoryManager implements ManagementInterface {
         return indiceDoMax;
     }
 
-    public int get_contador_id()
+    public int getContadorId()
     {
-        return ( this.contador_de_id );
+        return ( this.contadorDeId );
     }
 
-    public void set_contador_id(int contador_novo_valor)
+    public void setContadorId(int contadorNovoValor)
     {
-        this.contador_de_id = contador_novo_valor;
+        this.contadorDeId = contadorNovoValor;
     }
 
-    public void icrementar_contador_id()
+    public void icrementarContadorId()
     {
-        this.set_contador_id( this.get_contador_id() + 1 );
+        this.setContadorId( this.getContadorId() + 1 );
     }
 
-    public int get_total_quadros_para_gerenciar()
+    public int getTotalQuadrosParaGerenciar()
     {
-        return ( this.total_quadros_para_gerenciar );
+        return ( this.totalQuadrosParaGerenciar );
     }
 
-    public void set_total_quadros_para_gerenciar(int total_quadros_para_gerenciar_novo_valor)
+    public void setTotalQuadrosParaGerenciar(int totalQuadrosParaGerenciarNovoValor)
     {
-        this.total_quadros_para_gerenciar = total_quadros_para_gerenciar_novo_valor;
+        this.totalQuadrosParaGerenciar = totalQuadrosParaGerenciarNovoValor;
     }
 
-    public void inicializar_mapa_de_bits(int tamanho_mapa_de_bits)
+    public void inicializarMapaDeBits(int tamanhoMapaDeBits)
     {
-        this.mapa_de_bits = new int[tamanho_mapa_de_bits];
-        for (int i = 0; i < this.mapa_de_bits.length; i++) 
+        this.mapaDeBits = new int[tamanhoMapaDeBits];
+        for (int i = 0; i < this.mapaDeBits.length; i++) 
         {
-            this.mapa_de_bits[i] = 0;
+            this.mapaDeBits[i] = 0;
         }
     }
 
-    public int get_id_inicial()
+    public int getIdInicial()
     {
-        return this.id_inicial;
+        return this.idInicial;
     }
 
-    public HashMap get_lista_tabela_de_paginas()
+    public HashMap getListaTabelaDePaginas()
     {
-        return this.lista_tabela_de_paginas;
-    }
-
-    public void set_nova_tabela_de_paginas(int id_tabela_paginas, TabelaDePaginas tabela_de_pagina_nova)
-    {
-        this.lista_tabela_de_paginas.put(id_tabela_paginas, tabela_de_pagina_nova);
-    }
-
-    public void set_novo_projeto(int id_novo_projeto, String nome_novo_projeto)
-    {
-        this.lista_de_projetos.put(id_novo_projeto, nome_novo_projeto);
+        return this.listaTabelaDePaginas;
     }
     
 }
