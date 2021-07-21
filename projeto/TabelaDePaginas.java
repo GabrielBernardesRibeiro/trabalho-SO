@@ -73,9 +73,9 @@ public class TabelaDePaginas {
         return this.byteFinalSegmentoDados;
     }
 
-    public void setByteFinalSegmentoDados()
+    public void setByteFinalSegmentoDados(int byteFinal, boolean penis)
     {
-        this.byteFinalSegmentoDados = this.getByteInicial() + (this.getQuantidadeQuadrosTexto() * this.getTamanhoQuadroDeBits() ) + this.getTamanhoSegmentoDados() - 1;
+        this.byteFinalSegmentoDados = penis ? this.getByteInicial() + (this.getQuantidadeQuadrosTexto() * this.getTamanhoQuadroDeBits() ) + this.getTamanhoSegmentoDados() - 1 : byteFinal;
     }
 
     public int getQuantidadeDeQuadros(int totalDeBits) {

@@ -169,7 +169,7 @@ public class MemoryManager implements ManagementInterface {
                 }
                 
             }
-            tabelaPaginaAtual.setByteFinalSegmentoDados();
+            tabelaPaginaAtual.setByteFinalSegmentoDados(0, true);
 
             System.out.println( tabelaPaginaAtual.toString() );
         
@@ -192,19 +192,36 @@ public class MemoryManager implements ManagementInterface {
                 
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(idDoProcessoAtual);
 
-            int restoParaAlocar = size - tbP.faltandoDosegmentoDeDadosEstatico(); 
+            int restoParaAlocar = (size < tbP.faltandoDosegmentoDeDadosEstatico()) ? 0 : size - tbP.faltandoDosegmentoDeDadosEstatico();
+
+            System.out.println("100 : " + size);
+
+            int piu = size - restoParaAlocar + 2;
+
+            System.out.println("14 : " + piu);
+
             System.out.println("Resto pra alocar : " + restoParaAlocar);
             System.out.println("Byte final : " + tbP.getByteFinalSegmentoDados());
 
-            //System.out.println("Era pra dar doze, kkkkk : " + 12);
-
             int indiceParaAlocarHeap = this.worstFit(tbP.getQuantidadeDeQuadros(restoParaAlocar));
+
+            System.out.println("");
+
+            //piu = (indiceParaAlocarHeap * 32) - piu;
+
+            int essaPorra = (((indiceParaAlocarHeap * 32) - (piu + tbP.getByteFinalSegmentoDados())) + tbP.getByteFinalSegmentoDados() + size);
+
+            System.out.println("Porra : " + essaPorra);
+            //exit(0);
 
             for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.getQuantidadeDeQuadros(restoParaAlocar); i++) {
                 System.out.println( "I do allocate : " + i );  
                 tbP.alocarHeap(i);
                 this.mapaDeBits[i] = 1;
             } // Falta setar o final do segmento de dados novo
+            tbP.setByteFinalSegmentoDados(essaPorra, false);
+
+            System.out.println("byte final tbP : " + tbP.getByteFinalSegmentoDados());
 
             System.out.println("Antes alocar heap");
             //String penis = tbP.alocarHeap(indiceParaAlocarHeap);
