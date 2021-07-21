@@ -6,8 +6,9 @@ public class TabelaDePaginas {
     public int[] isValid = new int[tamanhoQuadroDeBits]; // Armazena 1(se página válida) e 0(se página invalida)
     public int[] paginas = new int[tamanhoQuadroDeBits]; // Armazena o endereço base do quadro de memória
     private int index;
-    
 
+    public Stack<Integer> stackByteFinal = new Stack<Integer>();
+    
     private int byteFinalSegmentoDados; // Começar o heap no byteFinalSegDados+1
     private int tamanhoSegmentoTexto;
     private int tamanhoSegmentoDados;
@@ -76,6 +77,8 @@ public class TabelaDePaginas {
     public void setByteFinalSegmentoDados(int byteFinal, boolean penis)
     {
         this.byteFinalSegmentoDados = penis ? this.getByteInicial() + (this.getQuantidadeQuadrosTexto() * this.getTamanhoQuadroDeBits() ) + this.getTamanhoSegmentoDados() - 1 : byteFinal;
+
+        this.stackByteFinal.add(this.byteFinalSegmentoDados);
     }
 
     public int getQuantidadeDeQuadros(int totalDeBits) {

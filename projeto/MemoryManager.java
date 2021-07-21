@@ -228,6 +228,8 @@ public class MemoryManager implements ManagementInterface {
             //System.out.println( "Penis : " + penis );
             System.out.println( tbP.toString() );
 
+
+           System.out.println("Stack : " + tbP.stackByteFinal);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
