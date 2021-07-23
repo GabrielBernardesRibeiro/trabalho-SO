@@ -1,5 +1,7 @@
 package projeto;
 
+import java.util.Stack;
+
 public class TabelaDePaginas {
     private final int tamanhoQuadroDeBits = 32;
     private final int indexInicial = 0;
@@ -146,6 +148,11 @@ public class TabelaDePaginas {
 
     public int faltandoDosegmentoDeDadosEstatico() {
        return (this.getByteFinalSegmentoDados() % 32) == 0 ? 0 : (((this.getQuantidadeQuadrosTexto() + this.getQuantidadeQuadrosDados()) * 32) - 1 - (this.getByteFinalSegmentoDados() + 1));
+    }
+
+    public boolean temLogicalAdress() {
+
+        return true;
     }
 
     @Override

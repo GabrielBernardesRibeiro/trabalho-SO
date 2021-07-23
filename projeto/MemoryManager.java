@@ -258,8 +258,56 @@ public class MemoryManager implements ManagementInterface {
     }
 
     @Override
-    public int getPhysicalAddress(int idDoProcessoAtual, int logicalAddress) {
-        return 5;
+    public int getPhysicalAddress(int processId, int logicalAddress) {
+        int enderecoFisico = 0;
+
+        try {
+
+            if(!this.listaTabelaDePaginas.containsKey(processId))
+                throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
+
+            TabelaDePaginas tabelaDoProcesso = this.listaTabelaDePaginas.get(processId);
+
+            if (logicalAddress > 1023)
+                throw new InvalidAddressException("Endereço lógico inválido. Endereço maior que : " + logicalAddress + ".");
+
+            if (logicalAddress < 0)
+                throw new InvalidAddressException("Endereço lógico inválido. Endereço menor que : " + logicalAddress + ".");
+
+            String binario = Integer.toBinaryString(logicalAddress);
+            int binarioLenght = binario.length();
+
+            String zeros = "";
+            
+            for (int i = 0; i < (10 - binarioLenght); i++)
+                zeros += "0";
+
+            String binario10Casas = zeros + binario;
+            
+            System.out.println("Binario : " + binario10Casas);
+
+            String primeiros5Bits = binario10Casas.substring(0,5);
+            String ultimos5Bits = binario10Casas.substring(5,10);
+
+            System.out.println("Primeiros 5 : " + primeiros5Bits);
+            System.out.println("Últimos 5 : " + ultimos5Bits);
+
+            int indicePagina = Integer.parseInt(primeiros5Bits, 2);
+
+            if (tabelaDoProcesso.isValid[indicePagina] == 0)
+                throw new InvalidAddressException("Endereço lógico inválido dentro do processo. Endereço igual a : " + logicalAddress + ".");  
+            
+            int endereco = tabelaDoProcesso.paginas[indicePagina];
+
+            enderecoFisico = endereco + Integer.parseInt(ultimos5Bits, 2);
+            
+            System.out.println("Primeiros 5 Decimal : " + indicePagina);
+         
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return enderecoFisico;
     }
 
     @Override
