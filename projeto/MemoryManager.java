@@ -56,7 +56,7 @@ public class MemoryManager implements ManagementInterface {
 
             if (programaDoArquivo.exists() == false) // Se arquivo não for encontrado
             {
-                throw new NoSuchFileException("Arquivo inválido ou não encontrado.");
+                throw new NoSuchFileException("Arquivo" + programaDoArquivo + " não encontrado.");
             }
 
             // ---------------------------------//----------------------
@@ -233,12 +233,57 @@ public class MemoryManager implements ManagementInterface {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return 5;
+        return size;
     }
 
     @Override
-    public int freeMemoryFromProcess(int idDoProcessoAtual, int size) {
-        return 5;
+    public int freeMemoryFromProcess(int processId, int size) {
+
+        try {
+            if(!this.listaTabelaDePaginas.containsKey(processId))
+                throw new InvalidProcessException("O processo de Id = " + idDoProcessoAtual + " é inválido.");
+
+            TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
+
+            if ( ( size - tbP.heapTotal ) < 0)
+                throw new NoSuchMemoryException("Tamanho passado maior que o heap."); // mudar depois
+
+            int topo = tbP.stackByteFinal.pop();
+
+            int nProTopo = tbP.getQuantidadeDeQuadros(topo);
+
+            //int restinho = (topo % 32 != 0) ? topo - nProTopo * 32 : 0; // else: 0 só por enquanto
+
+            int antesDele = tbP.stackByteFinal.peek();
+
+            int resultado = 0;
+
+            if ( (topo - size ) < antesDele) {
+                tbP.stackByteFinal.pop();
+            }
+
+            resultado = topo - size - (1); // Menos 1 pq conta o próprio
+            tbP.stackByteFinal.push(resultado);
+
+            // tirar o size de memória
+
+            int aaoo = tbP.getQuantidadeDeQuadros(resultado);
+            
+            for (int i = nProTopo; i > ( nProTopo - aaoo )  ; i--) {
+                this.mapaDeBits[i] = 0;
+                tbP.removerHeap(i);
+            }
+
+
+
+        } catch (Exception ex) {
+
+        }
+
+
+
+
+        return size;
     }
 
     @Override
@@ -254,7 +299,7 @@ public class MemoryManager implements ManagementInterface {
         this.listaTabelaDePaginas.clear();
         this.listaDeProcessos.clear(); 
 
-        // zerar var que controla ids dos processos da classe manager?
+        this.setContadorId( this.getIdInicial() );
     }
 
     @Override

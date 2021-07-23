@@ -1,0 +1,9 @@
+
+
+
+
+						Quando for printar a tabela de páginas, tem que lembrar de printar pelos bits válidos, assinalando os índices não válidos de alguma forma (por exemplo com um x ou sei lá), pq se removermos do heap, o valor ainda ficará lá no índice da lista "paginas"
+
+						Dois métodos na classe TabelaDePáginas que retornam o índice inical [getIndex() e getIndexInicial()]
+
+						Mover o método getQuantidadeDeQuadros() para o MemoryManager

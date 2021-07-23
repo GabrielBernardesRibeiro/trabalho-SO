@@ -17,6 +17,7 @@ public class TabelaDePaginas {
     private int quantidadeQuadrosTexto;
     private int quantidadeQuadrosDados;
 
+    public int heapTotal = 0;
     
     // vai ter q ter uma pilha
 
@@ -76,11 +77,12 @@ public class TabelaDePaginas {
         return this.byteFinalSegmentoDados;
     }
 
-    public void setByteFinalSegmentoDados(int byteFinal, boolean penis)
+    public void setByteFinalSegmentoDados(int byteFinal, boolean estatico)
     {
-        this.byteFinalSegmentoDados = penis ? this.getByteInicial() + (this.getQuantidadeQuadrosTexto() * this.getTamanhoQuadroDeBits() ) + this.getTamanhoSegmentoDados() - 1 : byteFinal;
+        this.byteFinalSegmentoDados = estatico ? this.getByteInicial() + (this.getQuantidadeQuadrosTexto() * this.getTamanhoQuadroDeBits() ) + this.getTamanhoSegmentoDados() - 1 : byteFinal;
 
-        this.stackByteFinal.add(this.byteFinalSegmentoDados);
+        if (!estatico)
+            this.stackByteFinal.push(this.byteFinalSegmentoDados);
     }
 
     public int getQuantidadeDeQuadros(int totalDeBits) {
@@ -146,15 +148,17 @@ public class TabelaDePaginas {
         this.isValid[n] = 1;
     }
 
+    public void removerHeap(int indiceNaMemoria) {
+        int n;
+        
+
+        this.isValid[n] = 0;
+    }
+
     public int faltandoDosegmentoDeDadosEstatico() {
        return (this.getByteFinalSegmentoDados() % 32) == 0 ? 0 : (((this.getQuantidadeQuadrosTexto() + this.getQuantidadeQuadrosDados()) * 32) - 1 - (this.getByteFinalSegmentoDados() + 1));
     }
-
-    public boolean temLogicalAdress() {
-
-        return true;
-    }
-
+    
     @Override
     public String toString() {
         String validos = "[";

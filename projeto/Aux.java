@@ -12,10 +12,16 @@ public class Aux {
             mm.allocateMemoryToProcess(0,100);
             //System.out.println("Id2 do processo: " + id2);
             System.out.println(mm.getBitMap());
+
+            mm.allocateMemoryToProcess(0,100);
+
+            System.out.println(mm.getBitMap());
+
+            mm.freeMemoryFromProcess(0,100);
             //mm.resetMemory();
             //System.out.println(mm.getBitMap());
-            int y = mm.getPhysicalAddress(0,1023);
-            System.out.println("Y : " + y);
+            // int y = mm.getPhysicalAddress(0,1023);
+            // System.out.println("Y : " + y);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
