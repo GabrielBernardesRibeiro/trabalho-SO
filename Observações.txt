@@ -7,3 +7,4 @@
 						Dois métodos na classe TabelaDePáginas que retornam o índice inical [getIndex() e getIndexInicial()]
 
 						Mover o método getQuantidadeDeQuadros() para o MemoryManager
+						Eu posso pegar o índice do quadro da memória pelo bit base que está na tabela de páginas,será o último bit válido pra trás, até a parte estática
