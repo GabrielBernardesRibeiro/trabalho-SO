@@ -8,10 +8,11 @@ import java.util.*;
 
 public class TabelaDePaginas {
     private final int tamanhoQuadroDeBits = 32;
-    private final int indexInicial = 0;
+    //private final int indexInicial = 0;
     public int[] isValid = new int[tamanhoQuadroDeBits]; // Armazena 1(se página válida) e 0(se página invalida)
     public int[] paginas = new int[tamanhoQuadroDeBits]; // Armazena o endereço base do quadro de memória
-    private int index;
+    
+    private int index = 0;
 
     public Stack<Integer> stackByteFinal = new Stack<Integer>();
     
@@ -32,7 +33,7 @@ public class TabelaDePaginas {
     public boolean trinta = true;
 
     public TabelaDePaginas(int tamanhoSegmentoTexto, int tamanhoSegmentoDados) {
-        this.setIndex(this.getIndexInicial());
+        this.setIndex(this.index);
         this.setTamanhoSegmentoTexto(tamanhoSegmentoTexto);
         this.setTamanhoSegmentoDados(tamanhoSegmentoDados);
         this.setQuantidadeQuadrosTexto(tamanhoSegmentoTexto);
@@ -104,30 +105,20 @@ public class TabelaDePaginas {
         this.index = indexNovo;
     }
 
-    private int getIndex()
-    {
-        return this.index;
-    }
-
-    private int getIndexInicial()
-    {
-        return this.indexInicial;
-    }
-
     private int getTamanhoQuadroDeBits()
     {
         return this.tamanhoQuadroDeBits;
     }
 
     public void alocarSegmentoTexto(int i) {
-        int indexAtual = this.getIndex();
+        int indexAtual = this.index;
         this.isValid[indexAtual] = 1;
         this.paginas[indexAtual] = i * this.getTamanhoQuadroDeBits();
         this.setIndex(indexAtual + 1);
     }
 
     public void alocarSegmentoData(int i) {
-        int indexAtual = this.getIndex();
+        int indexAtual = this.index;
         this.isValid[indexAtual] = 1;
         this.paginas[indexAtual] = i * this.getTamanhoQuadroDeBits();
         this.setIndex(indexAtual + 1);
@@ -211,7 +202,6 @@ public class TabelaDePaginas {
                     continue;
                 }
 
-                //if (i == this.byteFinalSegmentoDadosEstatico)
 
                 if (sum + 32 <= size) { // Ver se posso tirar um bloco inteiro
                     System.out.println("--------------");

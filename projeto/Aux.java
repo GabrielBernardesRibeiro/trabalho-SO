@@ -25,13 +25,18 @@ public class Aux {
 
             System.out.println(mm.getBitMap());
 
-            mm.freeMemoryFromProcess(0,2);
+            mm.freeMemoryFromProcess(0,120);
 
             //mm.excludeProcessFromMemory(0);
 
             //mm.resetMemory();
 
             System.out.println(mm.getBitMap());
+
+
+            System.out.println("Process List : ");
+            for (String i : mm.getProcessList())
+                System.out.println("Processo : "+ i);
 
             // int y = mm.getPhysicalAddress(0,1023);
             // System.out.println("Y : " + y);

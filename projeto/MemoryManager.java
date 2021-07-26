@@ -428,8 +428,14 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public String[] getProcessList() {
-        String[] ab = new String[]{"a","b"};
-        return ab;
+        Object[] processos = this.listaDeProcessos.entrySet().toArray();//.forEach( v -> "vv" );
+        String[] a = new String[this.listaDeProcessos.size()];
+
+        for (int i = 0; i < this.listaDeProcessos.size(); i++) {
+            a[i] = processos[i].toString();
+        }
+        
+        return a;
     }
 
 
