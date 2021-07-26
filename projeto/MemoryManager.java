@@ -169,7 +169,7 @@ public class MemoryManager implements ManagementInterface {
                 }
                 
             }
-            tabelaPaginaAtual.setByteFinalSegmentoDados(0, true);
+            tabelaPaginaAtual.setByteFinalSegmentoDadosEstatico();
 
             System.out.println( tabelaPaginaAtual.toString() );
         
@@ -192,46 +192,51 @@ public class MemoryManager implements ManagementInterface {
                 
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(idDoProcessoAtual);
 
-            int restoParaAlocar = (size < tbP.faltandoDosegmentoDeDadosEstatico()) ? 0 : size - tbP.faltandoDosegmentoDeDadosEstatico();
+            System.out.println("Faltando do segmento de dados : " + tbP.faltando());
+            
+            
+            double restoParaAlocar = (size < tbP.faltando()) ? 0 : size - tbP.faltando();
 
-            System.out.println("100 : " + size);
+            System.out.println("Size : " + size);
 
-            int piu = size - restoParaAlocar + 2;
+            System.out.println("RestoParaAlocar : " + restoParaAlocar);
 
-            System.out.println("14 : " + piu);
 
-            System.out.println("Resto pra alocar : " + restoParaAlocar);
-            System.out.println("Byte final : " + tbP.getByteFinalSegmentoDados());
+            int indiceParaAlocarHeap = this.worstFit(tbP.getQuantidadeDeQuadros((int)restoParaAlocar));
 
-            int indiceParaAlocarHeap = this.worstFit(tbP.getQuantidadeDeQuadros(restoParaAlocar));
+            if (indiceParaAlocarHeap == -1)
+                return 5000;
 
-            System.out.println("");
+            System.out.println("Indice para alocar : " + indiceParaAlocarHeap + ".");
 
-            //piu = (indiceParaAlocarHeap * 32) - piu;
 
-            int essaPorra = (((indiceParaAlocarHeap * 32) - (piu + tbP.getByteFinalSegmentoDados())) + tbP.getByteFinalSegmentoDados() + size);
+            int proximoByteFinal = ( indiceParaAlocarHeap * 32 ) + (int)restoParaAlocar - 1;
 
-            System.out.println("Porra : " + essaPorra);
+
+            System.out.println("Próximo byte final : " + proximoByteFinal);
+            
+            //int essaPorra = (((indiceParaAlocarHeap * 32) - (piu + tbP.getByteFinalSegmentoDados())) + tbP.getByteFinalSegmentoDados() + size);
+
+            
+            //System.out.println("Porra : " + essaPorra);
             //exit(0);
 
-            for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.getQuantidadeDeQuadros(restoParaAlocar); i++) {
+            
+            for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.getQuantidadeDeQuadros((int)restoParaAlocar); i++) {
                 System.out.println( "I do allocate : " + i );  
                 tbP.alocarHeap(i);
                 this.mapaDeBits[i] = 1;
             } // Falta setar o final do segmento de dados novo
-            tbP.setByteFinalSegmentoDados(essaPorra, false);
-
-            System.out.println("byte final tbP : " + tbP.getByteFinalSegmentoDados());
-
-            System.out.println("Antes alocar heap");
-            //String penis = tbP.alocarHeap(indiceParaAlocarHeap);
-            //System.out.println( "Penis : " + penis );
-            System.out.println( tbP.toString() );
+            tbP.setByteFinalHeap(proximoByteFinal);
 
 
-           System.out.println("Stack : " + tbP.stackByteFinal);
+            System.out.println("Depois de alocar na memória. Byte final tbP : " + tbP.getByteFinalSegmentoDados());
+
+            //System.out.println("tbP : " + tbP.toString());
+
         } catch (Exception ex) {
             ex.printStackTrace();
+            return -1;
         }
         return size;
     }
@@ -241,13 +246,14 @@ public class MemoryManager implements ManagementInterface {
 
         try {
             if(!this.listaTabelaDePaginas.containsKey(processId))
-                throw new InvalidProcessException("O processo de Id = " + idDoProcessoAtual + " é inválido.");
+                throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
 
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
 
-            if ( ( size - tbP.heapTotal ) < 0)
+            if ( ( size - tbP.getHeapTotal() ) > 0) // Faltou essa parte que é importante
                 throw new NoSuchMemoryException("Tamanho passado maior que o heap."); // mudar depois
 
+            /*
             int topo = tbP.stackByteFinal.pop();
 
             int nProTopo = tbP.getQuantidadeDeQuadros(topo);
@@ -255,12 +261,23 @@ public class MemoryManager implements ManagementInterface {
             //int restinho = (topo % 32 != 0) ? topo - nProTopo * 32 : 0; // else: 0 só por enquanto
 
             int antesDele = tbP.stackByteFinal.peek();
+            */
 
+            int novoByteFinal = tbP.byteFinalHeap - size;
+
+            System.out.println("-----------Remover------------");
+
+            System.out.println("tbP.byteFinalHeap : " + tbP.byteFinalHeap);
+
+            System.out.println("Novo byte final : " + novoByteFinal);
+
+
+            ArrayList<Integer> aadd = tbP.removerHeap(size);
+
+            aadd.forEach(value -> this.mapaDeBits[value] = 0);
+            
+            /*
             int resultado = 0;
-
-            if ( (topo - size ) < antesDele) {
-                tbP.stackByteFinal.pop();
-            }
 
             resultado = topo - size - (1); // Menos 1 pq conta o próprio
             tbP.stackByteFinal.push(resultado);
@@ -268,27 +285,53 @@ public class MemoryManager implements ManagementInterface {
             // tirar o size de memória
 
             int aaoo = tbP.getQuantidadeDeQuadros(resultado);
+
+            
+
+            while (tbP.stackByteFinal.length == 1) {
+                int i = tbP.removerHeap();
+                this.mapaDeBits[i] = 0;
+            }
             
             for (int i = nProTopo; i > ( nProTopo - aaoo )  ; i--) {
                 this.mapaDeBits[i] = 0;
                 tbP.removerHeap(i);
             }
 
+            tbP.setByteFinalHeap();
 
-
+            */
         } catch (Exception ex) {
-
+            ex.printStackTrace();
         }
-
-
-
 
         return size;
     }
 
     @Override
-    public void excludeProcessFromMemory(int idDoProcessoAtual) {
-        
+    public void excludeProcessFromMemory(int processId) {
+        try {
+            if(!this.listaTabelaDePaginas.containsKey(processId))
+                throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
+
+            TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
+
+            // Lembrar de fazer de forma exclusiva (quando dois processos iguais são carregados, a parte de texto é compartilhada)
+
+            ArrayList<Integer> indices = tbP.excluirProcessoDaMemoria();
+
+            indices.forEach(value -> this.mapaDeBits[value] = 0);
+
+            this.listaTabelaDePaginas.remove(processId);
+            this.listaDeProcessos.remove(processId); 
+
+            System.out.println("lista tabela de páginas : " + this.listaTabelaDePaginas.toString());
+
+            System.out.println("lista de processos : " + this.listaDeProcessos.toString());
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -386,22 +429,31 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public String[] getProcessList() {
-        String[] ab = new String[]{"a","b"};
-        return ab;
+        Object[] processos = this.listaDeProcessos.entrySet().toArray();//.forEach( v -> "vv" );
+        String[] a = new String[this.listaDeProcessos.size()];
+
+        for (int i = 0; i < this.listaDeProcessos.size(); i++) {
+            a[i] = processos[i].toString();
+        }
+        
+        return a;
     }
 
 
-    private int worstFit(int tamanhoProcesso) {
+    private int worstFit(int tamanhoDeQuadrosProcesso) {
         int i = 0;
         int j;
         int nroQuadros = 0;
         int indice;
-        int indiceDoMax = -1;
+        int indiceDoMax = 0;
         int nroMaxQuadros = 0;
 
-        System.out.println("Tamanho do processo : " + tamanhoProcesso);
+        if (tamanhoDeQuadrosProcesso == 0)
+            return -1;
 
-        System.out.println("Quadros para o processo : " + tamanhoProcesso);
+        //System.out.println("Tamanho do processo : " + tamanhoDeQuadrosProcesso);
+
+        System.out.println("Quadros para o processo : " + tamanhoDeQuadrosProcesso);
 
         while(i < this.totalQuadrosParaGerenciar) {
             if (this.mapaDeBits[i] == 0) {
@@ -412,7 +464,7 @@ public class MemoryManager implements ManagementInterface {
                     nroQuadros++;
                     j++;
                 }
-                if (nroQuadros >= tamanhoProcesso) {
+                if (nroQuadros > tamanhoDeQuadrosProcesso) {
                     if (nroQuadros > nroMaxQuadros) {
                         nroMaxQuadros = nroQuadros;
                         indiceDoMax = indice;
