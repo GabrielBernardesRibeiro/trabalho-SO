@@ -236,6 +236,7 @@ public class MemoryManager implements ManagementInterface {
 
         } catch (Exception ex) {
             ex.printStackTrace();
+            return -1;
         }
         return size;
     }
