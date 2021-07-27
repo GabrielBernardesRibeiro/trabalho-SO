@@ -6,40 +6,20 @@ import java.util.*;
 public class MemoryManager implements ManagementInterface {
     public int totalQuadrosParaGerenciar; // 32/64/128
     public int[] mapaDeBits; // Pode ter tamanho = 32/64/128
-    public HashMap<Integer,TabelaDePaginas> listaTabelaDePaginas = new HashMap<Integer,TabelaDePaginas>();
-    public HashMap<Integer,String> listaDeProcessos = new HashMap<Integer,String>();
-    public int contadorDeId; // contagem do id do processo
+    private HashMap<Integer,TabelaDePaginas> listaTabelaDePaginas = new HashMap<Integer,TabelaDePaginas>();
+    private HashMap<Integer,String> listaDeProcessos = new HashMap<Integer,String>();
+
+    private int contadorDeId; // contagem do id do processo
+    
     private int idInicial = 0;
 
-    private final int STACKSEGMENTSIZE = 64; // Tamanho do segmento da pilha
     private final int quantidadeQuadrosPilha = 2;
 
-    /*
-        primeira vez que ele roda p1:
-        [t,t,d1,d1,d1,d1,pi1,pi1,0,0,,0,0,0,0,0,.......]
-
-        segunda vez que ele roda p2:
-        [t,t,d1,d1,d1,d1,pi1,pi1,asda,dasdasd,0,0,0d2,d2,d2,d2,pi2,pi2,0,00,00,0.........]
-    */
-
-    // cada quadro tem 32 bytes 
-
-    // página do processo
-    // tabela de páginas dos processos
-
-
-    /*
-        Cada programa virtual:
-        - Texto : (segmento de texto com tamanho int > 1 e <= 960 bytes)
-        - Dados : (segmento de dados com tamanho int >= 0 e <= 928 bytes)
-        - Pilha : (segmento de pliha com tamanho == 64 bytes)
-        -- Tamanho máximo de 1024 bytes
-    */
 
     public MemoryManager(int totalQuadrosParaGerenciar) {
         this.setTotalQuadrosParaGerenciar(totalQuadrosParaGerenciar);
         this.inicializarMapaDeBits(totalQuadrosParaGerenciar);
-        this.setContadorId( this.getIdInicial() );
+        this.setContadorId( this.idInicial );
     }
 
     @Override
@@ -52,7 +32,7 @@ public class MemoryManager implements ManagementInterface {
         try {   
 
             // ------------ Sessão de carregar e validar o arquivo -----
-            File programaDoArquivo = new File(processName + ".txt");
+            File programaDoArquivo = new File(processName);
 
             if (programaDoArquivo.exists() == false) // Se arquivo não for encontrado
             {
@@ -119,6 +99,7 @@ public class MemoryManager implements ManagementInterface {
             scannerArquivo.close();
 
             System.out.println("\n");
+
             // ------------ Sessão de carregar o processo na memória -----------
             idDoProcessoAtual = this.getContadorId(); //this.contadorDeId
 
@@ -130,9 +111,6 @@ public class MemoryManager implements ManagementInterface {
             this.icrementarContadorId();
 
             // 2.  alocar quadros para armazenar texto e dados
-                // alocar para o texto
-                // alocar para os dados
-                // pilha sempre aloca 2 quadros
 
             // tamanho do processo: seg de texto + seg de dados + 64
             int quantidadeQuadrosTexto = tabelaPaginaAtual.getQuantidadeQuadrosTexto();
@@ -214,25 +192,18 @@ public class MemoryManager implements ManagementInterface {
 
 
             System.out.println("Próximo byte final : " + proximoByteFinal);
-            
-            //int essaPorra = (((indiceParaAlocarHeap * 32) - (piu + tbP.getByteFinalSegmentoDados())) + tbP.getByteFinalSegmentoDados() + size);
-
-            
-            //System.out.println("Porra : " + essaPorra);
-            //exit(0);
 
             
             for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.getQuantidadeDeQuadros((int)restoParaAlocar); i++) {
                 System.out.println( "I do allocate : " + i );  
                 tbP.alocarHeap(i);
                 this.mapaDeBits[i] = 1;
-            } // Falta setar o final do segmento de dados novo
+            }
             tbP.setByteFinalHeap(proximoByteFinal);
 
 
             System.out.println("Depois de alocar na memória. Byte final tbP : " + tbP.getByteFinalSegmentoDados());
 
-            //System.out.println("tbP : " + tbP.toString());
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -272,9 +243,9 @@ public class MemoryManager implements ManagementInterface {
             System.out.println("Novo byte final : " + novoByteFinal);
 
 
-            ArrayList<Integer> aadd = tbP.removerHeap(size);
+            ArrayList<Integer> indicesNaMemoria = tbP.removerHeap(size);
 
-            aadd.forEach(value -> this.mapaDeBits[value] = 0);
+            indicesNaMemoria.forEach(indice -> this.mapaDeBits[indice] = 0);
             
             /*
             int resultado = 0;
@@ -342,7 +313,6 @@ public class MemoryManager implements ManagementInterface {
         this.listaTabelaDePaginas.clear();
         this.listaDeProcessos.clear(); 
 
-        this.setContadorId( this.getIdInicial() );
     }
 
     @Override
@@ -400,15 +370,15 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public String getBitMap() {
-        String x = "[";
+        String bitMap = "[";
         for (int j = 0; j < this.mapaDeBits.length; j++) {
             if (j == this.mapaDeBits.length - 1) {
-                x += this.mapaDeBits[j] + "]";
+                bitMap += this.mapaDeBits[j] + "]";
                 break;
             }
-            x += this.mapaDeBits[j] +  ", "; 
+            bitMap += this.mapaDeBits[j] +  ", "; 
         }
-        return x;
+        return bitMap;
     }
 
     @Override
@@ -509,21 +479,6 @@ public class MemoryManager implements ManagementInterface {
         {
             this.mapaDeBits[i] = 0;
         }
-    }
-
-    public int getIdInicial()
-    {
-        return this.idInicial;
-    }
-
-    public void setNovoProcesso(int idNovoProcesso, String nomeNovoProcesso)
-    {
-        this.listaDeProcessos.put(idNovoProcesso, nomeNovoProcesso);
-    }
-
-    public HashMap getListaTabelaDePaginas()
-    {
-        return this.listaTabelaDePaginas;
     }
     
 }
