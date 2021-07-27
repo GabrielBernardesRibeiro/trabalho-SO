@@ -113,6 +113,13 @@ public class TabelaDePaginas {
         this.setIndex(indexAtual + 1);
     }
 
+    public void alocarSegmentoTextoCompartilhado(int i, int byteBase) {
+        int indexAtual = this.index;
+        this.isValid[indexAtual] = 1;
+        this.paginas[indexAtual] = byteBase;
+        this.setIndex(indexAtual + 1);
+    }
+
     public void alocarSegmentoData(int i) {
         int indexAtual = this.index;
         this.isValid[indexAtual] = 1;

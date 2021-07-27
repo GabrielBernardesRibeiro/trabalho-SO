@@ -28,6 +28,7 @@ public class MemoryManager implements ManagementInterface {
         int tamanhoSegmentoTexto = 0; // Tamanho do segmento de texto
         int tamanhoSegmentoDados = 0; // Tamanho do segmento de dados
         String nomeDoArquivo = ""; // NomeDoArquivo
+        boolean processoIgual = false; // Caso o processo a ser carregado for igual a um processo já carregado
 
         try {   
 
@@ -103,6 +104,22 @@ public class MemoryManager implements ManagementInterface {
             // ------------ Sessão de carregar o processo na memória -----------
             idDoProcessoAtual = this.getContadorId(); //this.contadorDeId
 
+            for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
+                int id = entrada.getKey();
+                TabelaDePaginas valor = entrada.getValue();
+                // Se processos iguais
+                if (valor.getTamanhoSegmentoTexto() == tamanhoSegmentoTexto && valor.getTamanhoSegmentoDados() == tamanhoSegmentoDados && this.listaDeProcessos.get(id) == processName) {
+                    // Segmento de texto compartilhado entre eles
+                    processoIgual = true;
+                    int quadrosTexto = valor.getQuantidadeQuadrosTexto();
+
+                    int[] posicoesNaMemoriaDoTexto = new int[quadrosTexto]; // Novo array de memorias compartilhadas
+
+                    for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
+                            posicoesNaMemoriaDoTexto[p] = valor.paginas[p];
+                }
+            }
+
             // 1. criação de uma tabela de página para representar o processo:
             TabelaDePaginas tabelaPaginaAtual = new TabelaDePaginas(tamanhoSegmentoTexto, tamanhoSegmentoDados);
 
@@ -119,27 +136,36 @@ public class MemoryManager implements ManagementInterface {
             int retornoWorstFit = this.worstFit(tamanhoProcesso);
 
             // ----------------- Parte de alocação da tabela de página
-            int j = 1;
+            int j = 0;
             for (int i = retornoWorstFit; i < retornoWorstFit + tamanhoProcesso; i++) 
             {
                 System.out.println("i : " + i);
                 this.mapaDeBits[i] = 1;
                 
-                if (j <= quantidadeQuadrosTexto ) 
+                if (processoIgual) {
+
+                }
+
+                if (j < quantidadeQuadrosTexto ) 
                 {
-                    tabelaPaginaAtual.alocarSegmentoTexto(i);
-                    j++;
+                    if (processoIgual) {
+                        tabelaPaginaAtual.alocarSegmentoTextoCompartilhado(j, posicoesNaMemoriaDoTexto[j]);    
+                        j++;
+                    } else {
+                        tabelaPaginaAtual.alocarSegmentoTexto(i);
+                        j++;
+                    }
                     continue;
                 }
                 
-                if (j > quantidadeQuadrosTexto + quantidadeQuadrosDados ) 
+                if (j >= quantidadeQuadrosTexto + quantidadeQuadrosDados ) 
                 {
                     tabelaPaginaAtual.alocarSegmentoStack(i);
                     j++;
                     continue;
                 }
                 
-                if (j > quantidadeQuadrosTexto )
+                if (j >= quantidadeQuadrosTexto )
                 {
                     tabelaPaginaAtual.alocarSegmentoData(i);
                     j++;
