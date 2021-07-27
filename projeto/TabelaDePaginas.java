@@ -8,29 +8,25 @@ import java.util.*;
 
 public class TabelaDePaginas {
     private final int tamanhoQuadroDeBits = 32;
-    //private final int indexInicial = 0;
     public int[] isValid = new int[tamanhoQuadroDeBits]; // Armazena 1(se página válida) e 0(se página invalida)
     public int[] paginas = new int[tamanhoQuadroDeBits]; // Armazena o endereço base do quadro de memória
     
     private int index = 0;
 
     public Stack<Integer> stackByteFinal = new Stack<Integer>();
-    
-     // Começar o heap no byteFinalSegDados+1
 
     public int byteFinalSegmentoDadosEstatico;
 
     public int byteFinalHeap;
 
+    private int heapTotal = 0;
+
     private int tamanhoSegmentoTexto;
     private int tamanhoSegmentoDados;
     private int quantidadeQuadrosTexto;
     private int quantidadeQuadrosDados;
-    
-    // vai ter q ter uma pilha
 
-
-    public boolean trinta = true;
+    private boolean trinta = true;
 
     public TabelaDePaginas(int tamanhoSegmentoTexto, int tamanhoSegmentoDados) {
         this.setIndex(this.index);
@@ -169,7 +165,7 @@ public class TabelaDePaginas {
         System.out.println("Limite = " + limite);
         System.out.println("--------------");
 
-        for (int i = 29; i >= limite; i--) {
+        for (int i = 29; i >= limite; i--) { // Começa-se a procura do índice 29, pois os índices 30 e 31 referem a pilha
 
             if (sum == size) {
                 System.out.println("::::::Sum = " + sum + ". Size = " + size);
@@ -223,10 +219,8 @@ public class TabelaDePaginas {
                     System.out.println("Novo byte final heap : " + novoByteFinalHeap);
                     System.out.println("--------------");
 
-                    // --------- Esses dois devem ser colocados em um método, pois sempre acontecem juntos
-                    this.stackByteFinal.push(novoByteFinalHeap);
-                    this.byteFinalHeap = novoByteFinalHeap;
-                    // ---------
+
+                    this.setByteFinalHeap(novoByteFinalHeap);
                 }
 
             }
@@ -240,13 +234,13 @@ public class TabelaDePaginas {
     }
 
     public int getHeapTotal() {
-        return this.byteFinalHeap - this.byteFinalSegmentoDadosEstatico;
+        return this.heapTotal;
     }
 
     public double faltando() {
         double byteFinal = (double)this.getByteFinalSegmentoDados();
-        double a = byteFinal / 32;
-        return (byteFinal % 32 != 0) ? ( Math.ceil(a) * 32) - 1 - byteFinal : 0;//
+        // double a = byteFinal / 32;
+        return (byteFinal % 32 != 0) ? ( Math.ceil( (byteFinal / 32) ) * 32) - 1 - byteFinal : 0;//
     }
 
     public ArrayList<Integer> excluirProcessoDaMemoria() {
