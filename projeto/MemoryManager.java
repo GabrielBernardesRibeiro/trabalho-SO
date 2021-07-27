@@ -104,6 +104,7 @@ public class MemoryManager implements ManagementInterface {
             // ------------ Sessão de carregar o processo na memória -----------
             idDoProcessoAtual = this.getContadorId(); //this.contadorDeId
 
+            ArrayList<Integer> posicoesNaMemoriaDoTexto = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
                 int id = entrada.getKey();
                 TabelaDePaginas valor = entrada.getValue();
@@ -113,10 +114,8 @@ public class MemoryManager implements ManagementInterface {
                     processoIgual = true;
                     int quadrosTexto = valor.getQuantidadeQuadrosTexto();
 
-                    int[] posicoesNaMemoriaDoTexto = new int[quadrosTexto]; // Novo array de memorias compartilhadas
-
                     for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
-                            posicoesNaMemoriaDoTexto[p] = valor.paginas[p];
+                            posicoesNaMemoriaDoTexto.add(valor.paginas[p]);
                 }
             }
 
@@ -149,7 +148,7 @@ public class MemoryManager implements ManagementInterface {
                 if (j < quantidadeQuadrosTexto ) 
                 {
                     if (processoIgual) {
-                        tabelaPaginaAtual.alocarSegmentoTextoCompartilhado(j, posicoesNaMemoriaDoTexto[j]);    
+                        tabelaPaginaAtual.alocarSegmentoTextoCompartilhado(j, posicoesNaMemoriaDoTexto.get(j));    
                         j++;
                     } else {
                         tabelaPaginaAtual.alocarSegmentoTexto(i);
@@ -312,36 +311,28 @@ public class MemoryManager implements ManagementInterface {
                 throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
 
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
-
+            
+            boolean processoIgual = false;
             // Lembrar de fazer de forma exclusiva (quando dois processos iguais são carregados, a parte de texto é compartilhada)
 
+
+            ArrayList<Integer> indicesDeTextoCompartilhado = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
                 int id = entrada.getKey();
                 TabelaDePaginas valor = entrada.getValue();
                 // Se processos iguais
-                if (valor.getTamanhoSegmentoTexto() == tamanhoSegmentoTexto && valor.getTamanhoSegmentoDados() == tamanhoSegmentoDados && this.listaDeProcessos.get(id) == processName) {
+                if (valor.getTamanhoSegmentoTexto() == tbP.getTamanhoSegmentoTexto() && valor.getTamanhoSegmentoDados() == tbP.getTamanhoSegmentoDados() && this.listaDeProcessos.get(id) == this.listaDeProcessos.get(processId)) {
                     // Segmento de texto compartilhado entre eles
                     processoIgual = true;
                     int quadrosTexto = valor.getQuantidadeQuadrosTexto();
 
-                    int[] indicesDeTextoCompartilhado = new int[quadrosTexto]; // Novo array de memorias compartilhadas
 
                     for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
-                            indicesDeTextoCompartilhado[p] = valor.paginas[p]/32;
+                            indicesDeTextoCompartilhado.add(valor.paginas[p]/32);
                 }
             }
 
             ArrayList<Integer> indices = tbP.excluirProcessoDaMemoria();
-
-            if (processoIgual) {
-                ArrayList<Integer> listaFiltrada = new ArrayList<Integer>();
-
-                for (int i = 0; i < indicesDeTextoCompartilhado.length; i++) {
-                    if (indicesDeTextoCompartilhado[i] != indices[i]) // Filtra a lista para gerar uma que não contenha os índices do segmento de texto compartilhado
-                        listaFiltrada.add(indices[i]);
-                }
-                listaFiltrada.    
-            } 
 
             // indicesDeTextoCompartilhado = [0,1,2]
             // indices  [0,1,2,3,4,10,11,12]
@@ -350,14 +341,14 @@ public class MemoryManager implements ManagementInterface {
             for (int indice : indices) {
                 for (int elemento : indicesDeTextoCompartilhado) {
                     compartilhado = false;
-                    if (elemento == value) {
+                    if (elemento == indice) {
                         compartilhado = true;
                         break;
                     }
                 }
 
                 if (!compartilhado)
-                    this.mapaDeBits[value] = 0
+                    this.mapaDeBits[indice] = 0;
             }
 
             /*
