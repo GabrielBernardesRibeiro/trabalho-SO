@@ -315,9 +315,64 @@ public class MemoryManager implements ManagementInterface {
 
             // Lembrar de fazer de forma exclusiva (quando dois processos iguais são carregados, a parte de texto é compartilhada)
 
+            for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
+                int id = entrada.getKey();
+                TabelaDePaginas valor = entrada.getValue();
+                // Se processos iguais
+                if (valor.getTamanhoSegmentoTexto() == tamanhoSegmentoTexto && valor.getTamanhoSegmentoDados() == tamanhoSegmentoDados && this.listaDeProcessos.get(id) == processName) {
+                    // Segmento de texto compartilhado entre eles
+                    processoIgual = true;
+                    int quadrosTexto = valor.getQuantidadeQuadrosTexto();
+
+                    int[] indicesDeTextoCompartilhado = new int[quadrosTexto]; // Novo array de memorias compartilhadas
+
+                    for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
+                            indicesDeTextoCompartilhado[p] = valor.paginas[p]/32;
+                }
+            }
+
             ArrayList<Integer> indices = tbP.excluirProcessoDaMemoria();
 
-            indices.forEach(value -> this.mapaDeBits[value] = 0);
+            if (processoIgual) {
+                ArrayList<Integer> listaFiltrada = new ArrayList<Integer>();
+
+                for (int i = 0; i < indicesDeTextoCompartilhado.length; i++) {
+                    if (indicesDeTextoCompartilhado[i] != indices[i]) // Filtra a lista para gerar uma que não contenha os índices do segmento de texto compartilhado
+                        listaFiltrada.add(indices[i]);
+                }
+                listaFiltrada.    
+            } 
+
+            // indicesDeTextoCompartilhado = [0,1,2]
+            // indices  [0,1,2,3,4,10,11,12]
+
+            boolean compartilhado = false;
+            for (int indice : indices) {
+                for (int elemento : indicesDeTextoCompartilhado) {
+                    compartilhado = false;
+                    if (elemento == value) {
+                        compartilhado = true;
+                        break;
+                    }
+                }
+
+                if (!compartilhado)
+                    this.mapaDeBits[value] = 0
+            }
+
+            /*
+            indices.forEach(value -> {
+                for (int elemento : indicesDeTextoCompartilhado) {
+                    if (elemento == value) {
+                        test = true;
+                        break;
+                    }
+                }
+
+                if (!test)
+                    this.mapaDeBits[value] = 0
+            });
+            */
 
             this.listaTabelaDePaginas.remove(processId);
             this.listaDeProcessos.remove(processId); 
