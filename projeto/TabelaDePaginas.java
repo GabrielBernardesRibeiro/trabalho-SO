@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.*;
 
 public class TabelaDePaginas {
-    public int[] isValid = new int[tamanhoQuadroDeBits]; // Armazena 1(se página válida) e 0(se página invalida)
-    public int[] paginas = new int[tamanhoQuadroDeBits]; // Armazena o endereço base do quadro de memória
-    
     private final int tamanhoQuadroDeBits = 32;
 
     private int index = 0;
@@ -28,6 +25,8 @@ public class TabelaDePaginas {
 
     private Stack<Integer> stackByteFinal = new Stack<Integer>();
 
+    public int[] isValid = new int[tamanhoQuadroDeBits]; // Armazena 1(se página válida) e 0(se página invalida)
+    public int[] paginas = new int[tamanhoQuadroDeBits]; // Armazena o endereço base do quadro de memória
 
     public TabelaDePaginas(int tamanhoSegmentoTexto, int tamanhoSegmentoDados) {
         this.setIndex(this.index);
@@ -253,7 +252,11 @@ public class TabelaDePaginas {
                 validos += this.isValid[n] + "]";
                 break;
             }
-            pages += this.paginas[n] + ",";
+            if (this.isValid[n] == 0 && this.paginas[n] != 0) {
+                pages += "x" + ",";
+            } else {
+                pages += this.paginas[n] + ",";
+            }
             validos += this.isValid[n] + ",";
         }
         return "Validos : " + validos + "\nPaginas : " + pages + ".\n" + "Pro heap : " + (this.getByteFinalSegmentoDados());

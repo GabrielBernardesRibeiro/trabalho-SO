@@ -1,26 +1,17 @@
 
 
-
-
-						Quando for printar a tabela de páginas, tem que lembrar de printar pelos bits válidos, assinalando os índices não válidos de alguma forma (por exemplo com um x ou sei lá), pq se removermos do heap, o valor ainda ficará lá no índice da lista "paginas"
-
-						Mover o método getQuantidadeDeQuadros() para o MemoryManager
-						Eu posso pegar o índice do quadro da memória pelo bit base que está na tabela de páginas,será o último bit válido pra trás, até a parte estática
-
-						Inicializa a memória toda como 0?
-
-						Colocar os prints nos métodos.
-
+Tabela de páginas.toString() não esa pronto : mostrar os bits não válidos?
 
 
 Falta colocar todas as exceções nos métodos : 
-						- loadProcessToMemory : FileFormatException; MemoryOverflowException
+						- loadProcessToMemory : FileFormatException; MemoryOverflowException; talvez mais algum NoSuchFileException
 						- allocateMemoryToProcess : MemoryOverflowException; StackOverflowException
 
 
 
 Menu : 
-		- For para printar as informações do processo no getProcessList()
-		- Pedir o nome do processo ao invés do Id
 		- Opcional : retirar "blocos"(?)
 		- Quando começar o menu, pedir se quer instanciar a memória com 32,64,128
+
+
+Falta : Comentar os métodos feitos por nós; comentar coisas pra deixar claro
