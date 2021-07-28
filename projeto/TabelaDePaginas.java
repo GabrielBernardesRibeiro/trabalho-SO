@@ -89,7 +89,11 @@ public class TabelaDePaginas {
 
     }
 
-    public void setByteFinalHeap(int byteFinal) {
+    public void setByteFinalHeap(int byteFinal, boolean aumentar, int size) {
+        if (aumentar)
+            this.aumentaHeapTotal(size);
+        else
+            this.diminuiHeapTotal(size);
         this.stackByteFinal.push(byteFinal);
         this.byteFinalHeap = byteFinal;
     }
@@ -229,7 +233,7 @@ public class TabelaDePaginas {
                     System.out.println("--------------");
 
 
-                    this.setByteFinalHeap(novoByteFinalHeap);
+                    this.setByteFinalHeap(novoByteFinalHeap, false, size);
                 }
 
             }
@@ -240,6 +244,14 @@ public class TabelaDePaginas {
         System.out.println("--------------");
 
         return indices;
+    }
+
+    private void aumentaHeapTotal(int quantidadeHeap) {
+        this.heapTotal += quantidadeHeap;
+    }
+
+    private void diminuiHeapTotal(int quantidadeHeap) {
+        this.heapTotal -= quantidadeHeap;
     }
 
     public int getHeapTotal() {

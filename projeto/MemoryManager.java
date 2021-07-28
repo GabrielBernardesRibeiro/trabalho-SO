@@ -104,8 +104,6 @@ public class MemoryManager implements ManagementInterface {
             // ------------ Sessão de carregar o processo na memória -----------
             idDoProcessoAtual = this.getContadorId(); //this.contadorDeId
 
-            System.out.println("\n tabela de paginas[0] : " + this.listaTabelaDePaginas.get(0));
-            System.out.println("\n\nAntes do for pra testar se o processo é igual\n\n");
             ArrayList<Integer> posicoesNaMemoriaDoTexto = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
@@ -115,15 +113,7 @@ public class MemoryManager implements ManagementInterface {
                 int entradaTamSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
                 int entradaTamSegDados = entrada.getValue().getTamanhoSegmentoDados();
                 
-                System.out.println("\n\n Id : " + id + "\n");//" valor : " + valor + " \n\n");
-                
-
-                System.out.println("\n entradaTamSegTexto : " + entradaTamSegTexto);
-                System.out.println("\n entradaTamSegDados : " + entradaTamSegDados);
-                System.out.println("\n this.listaDeProcessos.get(id)  : " + this.listaDeProcessos.get(id) );
-                System.out.println("\n nomeDoArquivo  : " + nomeDoArquivo );
                 // Se processos iguais
-                
                 if (entradaTamSegTexto == tamanhoSegmentoTexto && entradaTamSegDados == tamanhoSegmentoDados && this.listaDeProcessos.get(id).equals(nomeDoArquivo) ) {
                     System.out.println("\n\n Entrei no If, programa é igual " + "\n\n");
                     
@@ -221,37 +211,23 @@ public class MemoryManager implements ManagementInterface {
                 throw new InvalidProcessException("O processo de Id = " + idDoProcessoAtual + " é inválido.");
                 
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(idDoProcessoAtual);
-
-            System.out.println("Faltando do segmento de dados : " + tbP.faltando());
-            
             
             double restoParaAlocar = (size < tbP.faltando()) ? 0 : size - tbP.faltando();
-
-            System.out.println("Size : " + size);
-
-            System.out.println("RestoParaAlocar : " + restoParaAlocar);
-
 
             int indiceParaAlocarHeap = this.worstFit(tbP.getQuantidadeDeQuadros((int)restoParaAlocar));
 
             if (indiceParaAlocarHeap == -1)
                 return 5000;
 
-            System.out.println("Indice para alocar : " + indiceParaAlocarHeap + ".");
-
 
             int proximoByteFinal = ( indiceParaAlocarHeap * 32 ) + (int)restoParaAlocar - 1;
 
-
-            System.out.println("Próximo byte final : " + proximoByteFinal);
-
             
-            for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.getQuantidadeDeQuadros((int)restoParaAlocar); i++) {
-                System.out.println( "I do allocate : " + i );  
+            for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.getQuantidadeDeQuadros((int)restoParaAlocar); i++) { 
                 tbP.alocarHeap(i);
                 this.mapaDeBits[i] = 1;
             }
-            tbP.setByteFinalHeap(proximoByteFinal);
+            tbP.setByteFinalHeap(proximoByteFinal, true, size);
 
 
             System.out.println("Depois de alocar na memória. Byte final tbP : " + tbP.getByteFinalSegmentoDados());
@@ -272,63 +248,16 @@ public class MemoryManager implements ManagementInterface {
                 throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
 
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
-            
-            System.out.println("-----------socoro------------");
-
-            System.out.println("\nTBp : " + tbP);
-
 
             if ( ( size - tbP.getHeapTotal() ) > 0) // Faltou essa parte que é importante
                 throw new NoSuchMemoryException("Tamanho passado maior que o heap."); // mudar depois
 
-            /*
-            int topo = tbP.stackByteFinal.pop();
-
-            int nProTopo = tbP.getQuantidadeDeQuadros(topo);
-
-            //int restinho = (topo % 32 != 0) ? topo - nProTopo * 32 : 0; // else: 0 só por enquanto
-
-            int antesDele = tbP.stackByteFinal.peek();
-            */
-
             int novoByteFinal = tbP.byteFinalHeap - size;
-
-            System.out.println("-----------Remover------------");
-
-            System.out.println("tbP.byteFinalHeap : " + tbP.byteFinalHeap);
-
-            System.out.println("Novo byte final : " + novoByteFinal);
-
 
             ArrayList<Integer> indicesNaMemoria = tbP.removerHeap(size);
 
             indicesNaMemoria.forEach(indice -> this.mapaDeBits[indice] = 0);
             
-            /*
-            int resultado = 0;
-
-            resultado = topo - size - (1); // Menos 1 pq conta o próprio
-            tbP.stackByteFinal.push(resultado);
-
-            // tirar o size de memória
-
-            int aaoo = tbP.getQuantidadeDeQuadros(resultado);
-
-            
-
-            while (tbP.stackByteFinal.length == 1) {
-                int i = tbP.removerHeap();
-                this.mapaDeBits[i] = 0;
-            }
-            
-            for (int i = nProTopo; i > ( nProTopo - aaoo )  ; i--) {
-                this.mapaDeBits[i] = 0;
-                tbP.removerHeap(i);
-            }
-
-            tbP.setByteFinalHeap();
-
-            */
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -348,7 +277,6 @@ public class MemoryManager implements ManagementInterface {
 
             // Lembrar de fazer de forma exclusiva (quando dois processos iguais são carregados, a parte de texto é compartilhada)
 
-
             ArrayList<Integer> indicesDeTextoCompartilhado = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
                 int id = entrada.getKey();
@@ -360,17 +288,12 @@ public class MemoryManager implements ManagementInterface {
                     processoIgual = true;
                     int quadrosTexto = entrada.getValue().getQuantidadeQuadrosTexto();
 
-                    System.out.println("\n\n Entrei no if");
-
                     for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
                             indicesDeTextoCompartilhado.add(entrada.getValue().paginas[p]/32);
                 }
             }
 
             ArrayList<Integer> indices = tbP.excluirProcessoDaMemoria();
-
-            // indicesDeTextoCompartilhado = [0,1,2]
-            // indices  [0,1,2,3,4,10,11,12]
 
             boolean compartilhado = false;
             for (int indice : indices) {
@@ -385,20 +308,6 @@ public class MemoryManager implements ManagementInterface {
                 if (!compartilhado)
                     this.mapaDeBits[indice] = 0;
             }
-
-            /*
-            indices.forEach(value -> {
-                for (int elemento : indicesDeTextoCompartilhado) {
-                    if (elemento == value) {
-                        test = true;
-                        break;
-                    }
-                }
-
-                if (!test)
-                    this.mapaDeBits[value] = 0
-            });
-            */
 
             this.listaTabelaDePaginas.remove(processId);
             this.listaDeProcessos.remove(processId); 
@@ -421,6 +330,7 @@ public class MemoryManager implements ManagementInterface {
         this.listaTabelaDePaginas.clear();
         this.listaDeProcessos.clear(); 
 
+        this.setContadorId( this.idInicial );
     }
 
     @Override
@@ -528,8 +438,6 @@ public class MemoryManager implements ManagementInterface {
 
         if (tamanhoDeQuadrosProcesso == 0)
             return -1;
-
-        //System.out.println("Tamanho do processo : " + tamanhoDeQuadrosProcesso);
 
         System.out.println("Quadros para o processo : " + tamanhoDeQuadrosProcesso);
 

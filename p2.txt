@@ -1,0 +1,3 @@
+program p2
+text 30
+data 115
