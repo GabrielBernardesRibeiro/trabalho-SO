@@ -82,7 +82,6 @@ public class TabelaDePaginas {
     }
 
     public void setByteFinalSegmentoDadosEstatico() {
-        // [T,T,D,D,D,D]
         int comecoSegmentoDeDados = this.getQuantidadeQuadrosTexto(); // Se tem 2, o primeiro seg de dado tá no índice 2
 
         this.byteFinalSegmentoDadosEstatico = this.paginas[comecoSegmentoDeDados] + this.getTamanhoSegmentoDados() - 1;
@@ -163,25 +162,17 @@ public class TabelaDePaginas {
 
         double sum = 0;
 
-
         double byteFinalHeap = this.byteFinalHeap;// = (double)this.stackByteFinal.pop();
 
         double diferenca;// byteFinalHeap -  ( (Math.floor(byteFinalHeap/32) ) * 32 );
-        //sum += diferenca;
-
-        //this.isValid[( (Math.floor(byteFinalHeap/32) ) * 32 )] = 
 
         boolean primeiraVez = true;
 
         double limite = Math.floor( this.byteFinalSegmentoDadosEstatico/32 );
-        System.out.println("--------------");
-        System.out.println("Limite = " + limite);
-        System.out.println("--------------");
 
         for (int i = 29; i >= limite; i--) { // Começa-se a procura do índice 29, pois os índices 30 e 31 referem a pilha
 
             if (sum == size) {
-                System.out.println("::::::Sum = " + sum + ". Size = " + size);
                 break;
             }
 
@@ -189,9 +180,6 @@ public class TabelaDePaginas {
 
                 if (!this.stackByteFinal.empty() && this.stackByteFinal.peek() > this.paginas[i]) {
                     byteFinalHeap = this.stackByteFinal.pop();
-                    System.out.println("--------------");
-                    System.out.println("I :  = " + i + ". ByteFInalHeap : " + byteFinalHeap);
-                    System.out.println("--------------");
                 }
 
                 if (primeiraVez) {
@@ -204,44 +192,24 @@ public class TabelaDePaginas {
                     }
                     
                     primeiraVez = false;
-                    System.out.println("--------------");
-                    System.out.println("Primeira Vez");
-                    System.out.println("I :  = " + i + ". Diferenca = " + diferenca + ". Sum = " + sum);
-                    System.out.println("--------------");
                     continue;
                 }
 
 
                 if (sum + 32 <= size) { // Ver se posso tirar um bloco inteiro
-                    System.out.println("--------------");
-                    System.out.println("I :  = " + i + ". Sum + 32 = " + (sum+32));
                     indices.add(this.paginas[i] / 32);
                     this.isValid[i] = 0;
                     sum += 32;
-                    System.out.println("Sum novo : " + sum);
-                    System.out.println("--------------");
                 } else { // Se não puder, Tiro só a quantidade que falta
                     int restante = size - (int)sum;
                     int novoByteFinalHeap = (this.paginas[i] + 32) - restante;
                     sum += restante;
-
-                    System.out.println("--------------");
-                    System.out.println("Else");
-                    System.out.println("I :  = " + i + ". Restante : " + restante);
-                    System.out.println("Paginas[i] = " + this.paginas[i] + ". paginas[i] + 32 : " + (this.paginas[i]+32));
-                    System.out.println("Novo byte final heap : " + novoByteFinalHeap);
-                    System.out.println("--------------");
-
 
                     this.setByteFinalHeap(novoByteFinalHeap, false, size);
                 }
 
             }
         }
-        System.out.println("--------------");
-        System.out.println("Sum = " + sum);
-        System.out.println("ByteFinalHeap : " + this.byteFinalHeap);
-        System.out.println("--------------");
 
         return indices;
     }
@@ -260,7 +228,6 @@ public class TabelaDePaginas {
 
     public double faltando() {
         double byteFinal = (double)this.getByteFinalSegmentoDados();
-        // double a = byteFinal / 32;
         return (byteFinal % 32 != 0) ? ( Math.ceil( (byteFinal / 32) ) * 32) - 1 - byteFinal : 0;//
     }
 
