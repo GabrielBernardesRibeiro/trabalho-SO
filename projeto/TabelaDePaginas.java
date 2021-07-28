@@ -82,8 +82,10 @@ public class TabelaDePaginas {
     }
 
     public void setByteFinalSegmentoDadosEstatico() {
-        
-        this.byteFinalSegmentoDadosEstatico = this.getByteInicial() + (this.getQuantidadeQuadrosTexto() * this.getTamanhoQuadroDeBits() ) + this.getTamanhoSegmentoDados() - 1;
+        // [T,T,D,D,D,D]
+        int comecoSegmentoDeDados = this.getQuantidadeQuadrosTexto(); // Se tem 2, o primeiro seg de dado tá no índice 2
+
+        this.byteFinalSegmentoDadosEstatico = this.paginas[comecoSegmentoDeDados] + this.getTamanhoSegmentoDados() - 1;
 
     }
 

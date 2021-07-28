@@ -104,20 +104,41 @@ public class MemoryManager implements ManagementInterface {
             // ------------ Sessão de carregar o processo na memória -----------
             idDoProcessoAtual = this.getContadorId(); //this.contadorDeId
 
+            System.out.println("\n tabela de paginas[0] : " + this.listaTabelaDePaginas.get(0));
+            System.out.println("\n\nAntes do for pra testar se o processo é igual\n\n");
             ArrayList<Integer> posicoesNaMemoriaDoTexto = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
+            
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
+                System.out.println("\n\n Entrada : " + entrada + " \n\n");
                 int id = entrada.getKey();
-                TabelaDePaginas valor = entrada.getValue();
+                TabelaDePaginas valor = (TabelaDePaginas)entrada.getValue();
+                int entradaTamSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
+                int entradaTamSegDados = entrada.getValue().getTamanhoSegmentoDados();
+                
+                System.out.println("\n\n Id : " + id + "\n");//" valor : " + valor + " \n\n");
+                
+
+                System.out.println("\n entradaTamSegTexto : " + entradaTamSegTexto);
+                System.out.println("\n entradaTamSegDados : " + entradaTamSegDados);
+                System.out.println("\n this.listaDeProcessos.get(id)  : " + this.listaDeProcessos.get(id) );
+                System.out.println("\n nomeDoArquivo  : " + nomeDoArquivo );
                 // Se processos iguais
-                if (valor.getTamanhoSegmentoTexto() == tamanhoSegmentoTexto && valor.getTamanhoSegmentoDados() == tamanhoSegmentoDados && this.listaDeProcessos.get(id) == processName) {
+                
+                if (entradaTamSegTexto == tamanhoSegmentoTexto && entradaTamSegDados == tamanhoSegmentoDados && this.listaDeProcessos.get(id).equals(nomeDoArquivo) ) {
+                    System.out.println("\n\n Entrei no If, programa é igual " + "\n\n");
+                    
                     // Segmento de texto compartilhado entre eles
                     processoIgual = true;
-                    int quadrosTexto = valor.getQuantidadeQuadrosTexto();
+                    int quadrosTexto = entrada.getValue().getQuantidadeQuadrosTexto();
 
+                    System.out.println("\n quadrosTexto  : " + quadrosTexto );
                     for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
-                            posicoesNaMemoriaDoTexto.add(valor.paginas[p]);
+                        posicoesNaMemoriaDoTexto.add(entrada.getValue().paginas[p]);
                 }
+                
+                
             }
+            
 
             // 1. criação de uma tabela de página para representar o processo:
             TabelaDePaginas tabelaPaginaAtual = new TabelaDePaginas(tamanhoSegmentoTexto, tamanhoSegmentoDados);
@@ -140,14 +161,11 @@ public class MemoryManager implements ManagementInterface {
             {
                 System.out.println("i : " + i);
                 this.mapaDeBits[i] = 1;
-                
-                if (processoIgual) {
-
-                }
 
                 if (j < quantidadeQuadrosTexto ) 
                 {
                     if (processoIgual) {
+                        System.out.println( j + "Tabela atual : " + tabelaPaginaAtual.toString() );
                         tabelaPaginaAtual.alocarSegmentoTextoCompartilhado(j, posicoesNaMemoriaDoTexto.get(j));    
                         j++;
                     } else {
@@ -174,6 +192,8 @@ public class MemoryManager implements ManagementInterface {
             }
             tabelaPaginaAtual.setByteFinalSegmentoDadosEstatico();
 
+            System.out.println("\n\n\ndado Estatico : " + tabelaPaginaAtual.getByteFinalSegmentoDados());
+            
             System.out.println( tabelaPaginaAtual.toString() );
         
             
@@ -245,6 +265,11 @@ public class MemoryManager implements ManagementInterface {
                 throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
 
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
+            
+            System.out.println("-----------socoro------------");
+
+            System.out.println("\nTBp : " + tbP);
+
 
             if ( ( size - tbP.getHeapTotal() ) > 0) // Faltou essa parte que é importante
                 throw new NoSuchMemoryException("Tamanho passado maior que o heap."); // mudar depois
