@@ -7,17 +7,12 @@ import java.util.ArrayList;
 import java.util.*;
 
 public class TabelaDePaginas {
-    private final int tamanhoQuadroDeBits = 32;
     public int[] isValid = new int[tamanhoQuadroDeBits]; // Armazena 1(se página válida) e 0(se página invalida)
     public int[] paginas = new int[tamanhoQuadroDeBits]; // Armazena o endereço base do quadro de memória
     
+    private final int tamanhoQuadroDeBits = 32;
+
     private int index = 0;
-
-    public Stack<Integer> stackByteFinal = new Stack<Integer>();
-
-    public int byteFinalSegmentoDadosEstatico;
-
-    public int byteFinalHeap;
 
     private int heapTotal = 0;
 
@@ -27,6 +22,12 @@ public class TabelaDePaginas {
     private int quantidadeQuadrosDados;
 
     private boolean trinta = true;
+
+    private int byteFinalHeap;
+    private int byteFinalSegmentoDadosEstatico;
+
+    private Stack<Integer> stackByteFinal = new Stack<Integer>();
+
 
     public TabelaDePaginas(int tamanhoSegmentoTexto, int tamanhoSegmentoDados) {
         this.setIndex(this.index);
@@ -146,7 +147,6 @@ public class TabelaDePaginas {
         return this.paginas[0];
     }
 
-
     public void alocarHeap(int indiceNaMemoria) {
         int n;
         for (n = 0; n < this.paginas.length; n++) {
@@ -162,9 +162,9 @@ public class TabelaDePaginas {
 
         double sum = 0;
 
-        double byteFinalHeap = this.byteFinalHeap;// = (double)this.stackByteFinal.pop();
+        double byteFinalHeap = this.byteFinalHeap;
 
-        double diferenca;// byteFinalHeap -  ( (Math.floor(byteFinalHeap/32) ) * 32 );
+        double diferenca;
 
         boolean primeiraVez = true;
 
@@ -194,7 +194,6 @@ public class TabelaDePaginas {
                     primeiraVez = false;
                     continue;
                 }
-
 
                 if (sum + 32 <= size) { // Ver se posso tirar um bloco inteiro
                     indices.add(this.paginas[i] / 32);

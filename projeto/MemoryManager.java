@@ -4,12 +4,14 @@ import java.io.File;
 import java.util.*;
 
 public class MemoryManager implements ManagementInterface {
-    public int totalQuadrosParaGerenciar; // 32/64/128
-    public int[] mapaDeBits; // Pode ter tamanho = 32/64/128
+    private int[] mapaDeBits;
+
+    private int totalQuadrosParaGerenciar; 
+
     private HashMap<Integer,TabelaDePaginas> listaTabelaDePaginas = new HashMap<Integer,TabelaDePaginas>();
     private HashMap<Integer,String> listaDeProcessos = new HashMap<Integer,String>();
 
-    private int contadorDeId; // contagem do id do processo
+    private int contadorDeId; // Mantém o id dos processos
     
     private int idInicial = 0;
 
@@ -35,8 +37,7 @@ public class MemoryManager implements ManagementInterface {
             // ------------ Sessão de carregar e validar o arquivo -----
             File programaDoArquivo = new File(processName);
 
-            if (programaDoArquivo.exists() == false) // Se arquivo não for encontrado
-            {
+            if (programaDoArquivo.exists() == false) { // Se arquivo não for encontrado
                 throw new NoSuchFileException("Arquivo" + programaDoArquivo + " não encontrado.");
             }
 
@@ -45,54 +46,43 @@ public class MemoryManager implements ManagementInterface {
             // ----------- Sessão de leitura do arquivo -----------
             Scanner scannerArquivo = new Scanner(programaDoArquivo);
             int contadorDeLeitura = 1;
-            while(true)
-            {   
+            while(true) {   
                 int valorLeituraAtual;
                 String tituloAtual;
-                if (contadorDeLeitura == 1)
-                {
+                if (contadorDeLeitura == 1) {
                     tituloAtual = scannerArquivo.next();
-                    if (new String("program").equals(tituloAtual))
-                    {
+                    if (new String("program").equals(tituloAtual)) {
                         nomeDoArquivo = scannerArquivo.next();
-                    } else
-                    {
+                    } else {
                         throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                     }
-                } else if (contadorDeLeitura == 3)
-                {
+                } else if (contadorDeLeitura == 3) {
                     tituloAtual = scannerArquivo.next();
-                    if (new String("text").equals(tituloAtual))
-                    {
+                    if (new String("text").equals(tituloAtual)) {
                         try {
                             valorLeituraAtual = scannerArquivo.nextInt();
                             tamanhoSegmentoTexto = valorLeituraAtual;
                         } catch (InputMismatchException e) {
                             throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                         }
-                    } else
-                    {
+                    } else {
                         throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                     }
                     
-                } else if (contadorDeLeitura == 5)
-                {
+                } else if (contadorDeLeitura == 5) {
                     tituloAtual = scannerArquivo.next();
-                    if (new String("data").equals(tituloAtual))
-                    {
+                    if (new String("data").equals(tituloAtual)) {
                         try {
                             valorLeituraAtual = scannerArquivo.nextInt();
                             tamanhoSegmentoDados = valorLeituraAtual;
                         } catch (InputMismatchException e) {
                             throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                         }
-                    } else
-                    {
+                    } else {
                         throw new NoSuchFileException("Arquivo "+processName+" corrompido");
                     }
                 }
-                if (contadorDeLeitura == 6)
-                {
+                if (contadorDeLeitura == 6) {
                     break;
                 }
                 contadorDeLeitura++;
@@ -100,9 +90,10 @@ public class MemoryManager implements ManagementInterface {
             scannerArquivo.close();
 
             System.out.println("\n");
+            // ---------------------------------------------
 
             // ------------ Sessão de carregar o processo na memória -----------
-            idDoProcessoAtual = this.getContadorId(); //this.contadorDeId
+            idDoProcessoAtual = this.getContadorId();
 
             ArrayList<Integer> posicoesNaMemoriaDoTexto = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             
@@ -115,31 +106,25 @@ public class MemoryManager implements ManagementInterface {
                 
                 // Se processos iguais
                 if (entradaTamSegTexto == tamanhoSegmentoTexto && entradaTamSegDados == tamanhoSegmentoDados && this.listaDeProcessos.get(id).equals(nomeDoArquivo) ) {
-                    System.out.println("\n\n Entrei no If, programa é igual " + "\n\n");
                     
-                    // Segmento de texto compartilhado entre eles
                     processoIgual = true;
                     int quadrosTexto = entrada.getValue().getQuantidadeQuadrosTexto();
 
-                    System.out.println("\n quadrosTexto  : " + quadrosTexto );
-                    for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
-                        posicoesNaMemoriaDoTexto.add(entrada.getValue().paginas[p]);
+                    for (int i = 0; i < quadrosTexto; i++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
+                        posicoesNaMemoriaDoTexto.add(entrada.getValue().paginas[i]);
                 }
-                
-                
+
             }
             
 
-            // 1. criação de uma tabela de página para representar o processo:
+            // 1. Criação de uma tabela de página para representar o processo:
             TabelaDePaginas tabelaPaginaAtual = new TabelaDePaginas(tamanhoSegmentoTexto, tamanhoSegmentoDados);
 
             this.listaTabelaDePaginas.put(idDoProcessoAtual, tabelaPaginaAtual);
             this.listaDeProcessos.put(idDoProcessoAtual, nomeDoArquivo);
             this.icrementarContadorId();
 
-            // 2.  alocar quadros para armazenar texto e dados
-
-            // tamanho do processo: seg de texto + seg de dados + 64
+            // 2. Alocar quadros para armazenar texto, dado e pilha
             int quantidadeQuadrosTexto = tabelaPaginaAtual.getQuantidadeQuadrosTexto();
             int quantidadeQuadrosDados = tabelaPaginaAtual.getQuantidadeQuadrosDados();
             int tamanhoProcesso;
@@ -153,16 +138,14 @@ public class MemoryManager implements ManagementInterface {
             int retornoWorstFit = this.worstFit(tamanhoProcesso);
 
             // ----------------- Parte de alocação da tabela de página
+
             int j = 0;
             for (int i = retornoWorstFit; i < retornoWorstFit + tamanhoProcesso; i++) 
             {
-                System.out.println("i : " + i);
                 this.mapaDeBits[i] = 1;
 
-                if (j < quantidadeQuadrosTexto ) 
-                {
+                if (j < quantidadeQuadrosTexto ) {
                     if (processoIgual) {
-                        System.out.println( j + "Tabela atual : " + tabelaPaginaAtual.toString() );
                         tabelaPaginaAtual.alocarSegmentoTextoCompartilhado(j, posicoesNaMemoriaDoTexto.get(j));    
                         j++;
                     } else {
@@ -172,15 +155,13 @@ public class MemoryManager implements ManagementInterface {
                     continue;
                 }
                 
-                if (j >= quantidadeQuadrosTexto + quantidadeQuadrosDados ) 
-                {
+                if (j >= quantidadeQuadrosTexto + quantidadeQuadrosDados ) {
                     tabelaPaginaAtual.alocarSegmentoStack(i);
                     j++;
                     continue;
                 }
                 
-                if (j >= quantidadeQuadrosTexto )
-                {
+                if (j >= quantidadeQuadrosTexto ) {
                     tabelaPaginaAtual.alocarSegmentoData(i);
                     j++;
                     continue;
@@ -188,10 +169,6 @@ public class MemoryManager implements ManagementInterface {
                 
             }
             tabelaPaginaAtual.setByteFinalSegmentoDadosEstatico();
-
-            System.out.println("\n\n\ndado Estatico : " + tabelaPaginaAtual.getByteFinalSegmentoDados());
-
-            System.out.println( tabelaPaginaAtual.toString() );
         
             System.out.println("Mapa de bits : " + this.getBitMap());
             // ---------------------------------//------------------------------
@@ -204,34 +181,25 @@ public class MemoryManager implements ManagementInterface {
     }
 
     @Override
-    public int allocateMemoryToProcess(int idDoProcessoAtual, int size) {
+    public int allocateMemoryToProcess(int processId, int size) {
         try {
 
-            if(!this.listaTabelaDePaginas.containsKey(idDoProcessoAtual))
-                throw new InvalidProcessException("O processo de Id = " + idDoProcessoAtual + " é inválido.");
+            if(!this.listaTabelaDePaginas.containsKey(processId))
+                throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
                 
-            TabelaDePaginas tbP = this.listaTabelaDePaginas.get(idDoProcessoAtual);
+            TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
             
             double restoParaAlocar = (size < tbP.faltando()) ? 0 : size - tbP.faltando();
 
             int indiceParaAlocarHeap = this.worstFit(tbP.getQuantidadeDeQuadros((int)restoParaAlocar));
 
-            if (indiceParaAlocarHeap == -1)
-                return 5000;
-
-
             int proximoByteFinal = ( indiceParaAlocarHeap * 32 ) + (int)restoParaAlocar - 1;
 
-            
             for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.getQuantidadeDeQuadros((int)restoParaAlocar); i++) { 
                 tbP.alocarHeap(i);
                 this.mapaDeBits[i] = 1;
             }
             tbP.setByteFinalHeap(proximoByteFinal, true, size);
-
-
-            System.out.println("Depois de alocar na memória. Byte final tbP : " + tbP.getByteFinalSegmentoDados());
-
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -249,10 +217,10 @@ public class MemoryManager implements ManagementInterface {
 
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
 
-            if ( ( size - tbP.getHeapTotal() ) > 0) // Faltou essa parte que é importante
-                throw new NoSuchMemoryException("Tamanho passado maior que o heap."); // mudar depois
+            if ( ( size - tbP.getHeapTotal() ) > 0)
+                throw new NoSuchMemoryException("Tamanho : " + size + " é maior que o tamanho total do heap.");
 
-            int novoByteFinal = tbP.byteFinalHeap - size;
+            int novoByteFinal = tbP.getByteFinalSegmentoDados() - size;
 
             ArrayList<Integer> indicesNaMemoria = tbP.removerHeap(size);
 
@@ -261,13 +229,13 @@ public class MemoryManager implements ManagementInterface {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
         return size;
     }
 
     @Override
     public void excludeProcessFromMemory(int processId) {
         try {
+
             if(!this.listaTabelaDePaginas.containsKey(processId))
                 throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
 
@@ -275,16 +243,15 @@ public class MemoryManager implements ManagementInterface {
             
             boolean processoIgual = false;
 
-            // Lembrar de fazer de forma exclusiva (quando dois processos iguais são carregados, a parte de texto é compartilhada)
-
             ArrayList<Integer> indicesDeTextoCompartilhado = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
                 int id = entrada.getKey();
                 int entradaTamSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
                 int entradaTamSegDados = entrada.getValue().getTamanhoSegmentoDados();
+
                 // Se processos iguais
                 if (entradaTamSegTexto == tbP.getTamanhoSegmentoTexto() && entradaTamSegDados == tbP.getTamanhoSegmentoDados() && this.listaDeProcessos.get(id).equals(this.listaDeProcessos.get(processId)) ) {
-                    // Segmento de texto compartilhado entre eles
+
                     processoIgual = true;
                     int quadrosTexto = entrada.getValue().getQuantidadeQuadrosTexto();
 
@@ -335,7 +302,7 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public int getPhysicalAddress(int processId, int logicalAddress) {
-        int enderecoFisico = 0;
+        int enderecoFisico = 0; ///// ???????????????
 
         try {
 
@@ -365,9 +332,6 @@ public class MemoryManager implements ManagementInterface {
             String primeiros5Bits = binario10Casas.substring(0,5);
             String ultimos5Bits = binario10Casas.substring(5,10);
 
-            System.out.println("Primeiros 5 : " + primeiros5Bits);
-            System.out.println("Últimos 5 : " + ultimos5Bits);
-
             int indicePagina = Integer.parseInt(primeiros5Bits, 2);
 
             if (tabelaDoProcesso.isValid[indicePagina] == 0)
@@ -376,8 +340,6 @@ public class MemoryManager implements ManagementInterface {
             int endereco = tabelaDoProcesso.paginas[indicePagina];
 
             enderecoFisico = endereco + Integer.parseInt(ultimos5Bits, 2);
-            
-            System.out.println("Primeiros 5 Decimal : " + indicePagina);
          
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -400,31 +362,31 @@ public class MemoryManager implements ManagementInterface {
     }
 
     @Override
-    public String getPageTable(int idDoProcessoAtual) {
+    public String getPageTable(int processId) {
         try {
 
-            if(!this.listaTabelaDePaginas.containsKey(idDoProcessoAtual))
-                throw new InvalidProcessException("O processo de Id = " + idDoProcessoAtual + " é inválido.");
+            if(!this.listaTabelaDePaginas.containsKey(processId))
+                throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
 
         } catch(Exception ex) {
             ex.printStackTrace();
         }
 
-        TabelaDePaginas tabelaPaginaAtual = this.listaTabelaDePaginas.get(idDoProcessoAtual);
+        TabelaDePaginas tabelaPaginaAtual = this.listaTabelaDePaginas.get(processId);
             
-        return "A tabela de páginas vínculada ao processo com id : " + idDoProcessoAtual + " é a página : " + tabelaPaginaAtual.toString();
+        return "A tabela de páginas vínculada ao processo com id : " + processId + " é a página : " + tabelaPaginaAtual.toString();
     }
 
     @Override
     public String[] getProcessList() {
-        Object[] processos = this.listaDeProcessos.entrySet().toArray();//.forEach( v -> "vv" );
-        String[] a = new String[this.listaDeProcessos.size()];
+        ArrayList<String> a = new ArrayList<String>();
 
-        for (int i = 0; i < this.listaDeProcessos.size(); i++) {
-            a[i] = processos[i].toString();
+        for (HashMap.Entry<Integer,String> entrada : this.listaDeProcessos.entrySet()) {
+            int id = entrada.getKey();
+            String nome = entrada.getValue();
+            a.add("[Id : " + id + ";Nome : " + nome + "]");
         }
-        
-        return a;
+        return a.toArray(new String[0]);
     }
 
 
