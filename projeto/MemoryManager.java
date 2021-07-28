@@ -152,7 +152,14 @@ public class MemoryManager implements ManagementInterface {
             // tamanho do processo: seg de texto + seg de dados + 64
             int quantidadeQuadrosTexto = tabelaPaginaAtual.getQuantidadeQuadrosTexto();
             int quantidadeQuadrosDados = tabelaPaginaAtual.getQuantidadeQuadrosDados();
-            int tamanhoProcesso = quantidadeQuadrosTexto + quantidadeQuadrosDados + this.quantidadeQuadrosPilha;
+            int tamanhoProcesso;
+
+            if (processoIgual) { // Se processo for igual só precisa alocar dados e pilha
+                tamanhoProcesso = quantidadeQuadrosDados + this.quantidadeQuadrosPilha;
+            } else {
+                tamanhoProcesso = quantidadeQuadrosTexto + quantidadeQuadrosDados + this.quantidadeQuadrosPilha;
+            }
+
             int retornoWorstFit = this.worstFit(tamanhoProcesso);
 
             // ----------------- Parte de alocação da tabela de página
@@ -193,10 +200,10 @@ public class MemoryManager implements ManagementInterface {
             tabelaPaginaAtual.setByteFinalSegmentoDadosEstatico();
 
             System.out.println("\n\n\ndado Estatico : " + tabelaPaginaAtual.getByteFinalSegmentoDados());
-            
+
             System.out.println( tabelaPaginaAtual.toString() );
         
-            
+            System.out.println("Mapa de bits : " + this.getBitMap());
             // ---------------------------------//------------------------------
         
         } catch (Exception ex) {
@@ -338,22 +345,25 @@ public class MemoryManager implements ManagementInterface {
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
             
             boolean processoIgual = false;
+
             // Lembrar de fazer de forma exclusiva (quando dois processos iguais são carregados, a parte de texto é compartilhada)
 
 
             ArrayList<Integer> indicesDeTextoCompartilhado = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
                 int id = entrada.getKey();
-                TabelaDePaginas valor = entrada.getValue();
+                int entradaTamSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
+                int entradaTamSegDados = entrada.getValue().getTamanhoSegmentoDados();
                 // Se processos iguais
-                if (valor.getTamanhoSegmentoTexto() == tbP.getTamanhoSegmentoTexto() && valor.getTamanhoSegmentoDados() == tbP.getTamanhoSegmentoDados() && this.listaDeProcessos.get(id) == this.listaDeProcessos.get(processId)) {
+                if (entradaTamSegTexto == tbP.getTamanhoSegmentoTexto() && entradaTamSegDados == tbP.getTamanhoSegmentoDados() && this.listaDeProcessos.get(id).equals(this.listaDeProcessos.get(processId)) ) {
                     // Segmento de texto compartilhado entre eles
                     processoIgual = true;
-                    int quadrosTexto = valor.getQuantidadeQuadrosTexto();
+                    int quadrosTexto = entrada.getValue().getQuantidadeQuadrosTexto();
 
+                    System.out.println("\n\n Entrei no if");
 
                     for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
-                            indicesDeTextoCompartilhado.add(valor.paginas[p]/32);
+                            indicesDeTextoCompartilhado.add(entrada.getValue().paginas[p]/32);
                 }
             }
 
@@ -397,6 +407,7 @@ public class MemoryManager implements ManagementInterface {
 
             System.out.println("lista de processos : " + this.listaDeProcessos.toString());
 
+            System.out.println("bit map : " + this.getBitMap());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
