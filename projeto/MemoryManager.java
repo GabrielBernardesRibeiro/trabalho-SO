@@ -93,12 +93,11 @@ public class MemoryManager implements ManagementInterface {
             // ---------------------------------------------
 
             // ------------ Sessão de carregar o processo na memória -----------
-            idDoProcessoAtual = this.getContadorId();
+            idDoProcessoAtual = this.contadorDeId;
 
             ArrayList<Integer> posicoesNaMemoriaDoTexto = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
-                System.out.println("\n\n Entrada : " + entrada + " \n\n");
                 int id = entrada.getKey();
                 TabelaDePaginas valor = (TabelaDePaginas)entrada.getValue();
                 int entradaTamSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
@@ -302,7 +301,7 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public int getPhysicalAddress(int processId, int logicalAddress) {
-        int enderecoFisico = 0; ///// ???????????????
+        int enderecoFisico = 0;
 
         try {
 
@@ -390,7 +389,12 @@ public class MemoryManager implements ManagementInterface {
     }
 
 
-    private int worstFit(int tamanhoDeQuadrosProcesso) {
+    /** 
+     * Determina o índice ao qual os dados passados devem ser alocados deixando o maior espaço livre possível
+	 * @return primeiro indice da memória ao qual os dados devem ser alocados 
+	 * @param tamanhoDeQuadros quantos quadros devem ser alocados
+	 */
+    private int worstFit(int tamanhoDeQuadros) {
         int i = 0;
         int j;
         int nroQuadros = 0;
@@ -398,21 +402,23 @@ public class MemoryManager implements ManagementInterface {
         int indiceDoMax = 0;
         int nroMaxQuadros = 0;
 
-        if (tamanhoDeQuadrosProcesso == 0)
+        if (tamanhoDeQuadros == 0)
             return -1;
-
-        System.out.println("Quadros para o processo : " + tamanhoDeQuadrosProcesso);
 
         while(i < this.totalQuadrosParaGerenciar) {
             if (this.mapaDeBits[i] == 0) {
                 nroQuadros = 0;
                 indice = i;
                 j = i;
+                /* Conta quantos quadros estão livres em um buraco */
                 while (j < this.mapaDeBits.length && this.mapaDeBits[j] != 1 ) {
                     nroQuadros++;
                     j++;
                 }
-                if (nroQuadros > tamanhoDeQuadrosProcesso) {
+
+                if (nroQuadros > tamanhoDeQuadros) { // Se o processo caber nesse buraco
+
+                    /* Se esse buraco for maior do que um já "avaliado" guarda o índice do primeiro quadro desse buraco */
                     if (nroQuadros > nroMaxQuadros) {
                         nroMaxQuadros = nroQuadros;
                         indiceDoMax = indice;
@@ -425,6 +431,27 @@ public class MemoryManager implements ManagementInterface {
         return indiceDoMax;
     }
 
+    /** 
+	 *  Incrementa o contador de Id em uma unidade  
+	 */
+    public void icrementarContadorId()
+    {
+        this.contadorDeId += 1 ;
+    }
+
+    /** 
+	 * Atribui o valor "0" a todos os bits do mapa de bits
+     * @param tamanhoMapaDeBits tamanho total do mapa de bits
+	 */
+    private void inicializarMapaDeBits(int tamanhoMapaDeBits)
+    {
+        this.mapaDeBits = new int[tamanhoMapaDeBits];
+        for (int i = 0; i < this.mapaDeBits.length; i++) 
+        {
+            this.mapaDeBits[i] = 0;
+        }
+    }
+
     public int getContadorId()
     {
         return ( this.contadorDeId );
@@ -435,11 +462,6 @@ public class MemoryManager implements ManagementInterface {
         this.contadorDeId = contadorNovoValor;
     }
 
-    public void icrementarContadorId()
-    {
-        this.setContadorId( this.getContadorId() + 1 );
-    }
-
     public int getTotalQuadrosParaGerenciar()
     {
         return ( this.totalQuadrosParaGerenciar );
@@ -448,15 +470,6 @@ public class MemoryManager implements ManagementInterface {
     public void setTotalQuadrosParaGerenciar(int totalQuadrosParaGerenciar)
     {
         this.totalQuadrosParaGerenciar = totalQuadrosParaGerenciar;
-    }
-
-    public void inicializarMapaDeBits(int tamanhoMapaDeBits)
-    {
-        this.mapaDeBits = new int[tamanhoMapaDeBits];
-        for (int i = 0; i < this.mapaDeBits.length; i++) 
-        {
-            this.mapaDeBits[i] = 0;
-        }
     }
     
 }

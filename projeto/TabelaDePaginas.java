@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.*;
 
 public class TabelaDePaginas {
-    private final int tamanhoQuadroDeBits = 32;
+    private final int tamanhoQuadroDeBytes = 32;
 
     private int index = 0;
 
@@ -23,10 +23,10 @@ public class TabelaDePaginas {
     private int byteFinalHeap;
     private int byteFinalSegmentoDadosEstatico;
 
-    private Stack<Integer> stackByteFinal = new Stack<Integer>();
+    private Stack<Integer> stackByteFinal = new Stack<Integer>(); // Armazena os bytes finais de cada heap alocado
 
-    public int[] isValid = new int[tamanhoQuadroDeBits]; // Armazena 1(se página válida) e 0(se página invalida)
-    public int[] paginas = new int[tamanhoQuadroDeBits]; // Armazena o endereço base do quadro de memória
+    public int[] isValid = new int[tamanhoQuadroDeBytes]; // Armazena 1(se página válida) e 0(se página invalida)
+    public int[] paginas = new int[tamanhoQuadroDeBytes]; // Armazena o endereço base do quadro de memória
 
     public TabelaDePaginas(int tamanhoSegmentoTexto, int tamanhoSegmentoDados) {
         this.setIndex(this.index);
@@ -81,6 +81,24 @@ public class TabelaDePaginas {
         return this.byteFinalHeap == 0 ? this.byteFinalSegmentoDadosEstatico : this.byteFinalHeap;
     }
 
+    public int getHeapTotal() {
+        return this.heapTotal;
+    }
+
+    private void setIndex(int indexNovo)
+    {
+        this.index = indexNovo;
+    }
+
+    private int getTamanhoQuadroDeBytes()
+    {
+        return this.tamanhoQuadroDeBytes;
+    }
+
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
     public void setByteFinalSegmentoDadosEstatico() {
         int comecoSegmentoDeDados = this.getQuantidadeQuadrosTexto(); // Se tem 2, o primeiro seg de dado tá no índice 2
 
@@ -88,6 +106,10 @@ public class TabelaDePaginas {
 
     }
 
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
     public void setByteFinalHeap(int byteFinal, boolean aumentar, int size) {
         if (aumentar)
             this.aumentaHeapTotal(size);
@@ -97,27 +119,30 @@ public class TabelaDePaginas {
         this.byteFinalHeap = byteFinal;
     }
 
-    public int getQuantidadeDeQuadros(int totalDeBits) {
-        return (totalDeBits % 32 != 0) ? (totalDeBits / 32) + 1 : (totalDeBits / 32);
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
+    public int getQuantidadeDeQuadros(int totalDeBytes) {
+        return (totalDeBytes % 32 != 0) ? (totalDeBytes / 32) + 1 : (totalDeBytes / 32);
     }
 
-    private void setIndex(int indexNovo)
-    {
-        this.index = indexNovo;
-    }
 
-    private int getTamanhoQuadroDeBits()
-    {
-        return this.tamanhoQuadroDeBits;
-    }
-
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
     public void alocarSegmentoTexto(int i) {
         int indexAtual = this.index;
         this.isValid[indexAtual] = 1;
-        this.paginas[indexAtual] = i * this.getTamanhoQuadroDeBits();
+        this.paginas[indexAtual] = i * this.getTamanhoQuadroDeBytes();
         this.setIndex(indexAtual + 1);
     }
 
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
     public void alocarSegmentoTextoCompartilhado(int i, int byteBase) {
         int indexAtual = this.index;
         this.isValid[indexAtual] = 1;
@@ -125,27 +150,39 @@ public class TabelaDePaginas {
         this.setIndex(indexAtual + 1);
     }
 
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
     public void alocarSegmentoData(int i) {
         int indexAtual = this.index;
         this.isValid[indexAtual] = 1;
-        this.paginas[indexAtual] = i * this.getTamanhoQuadroDeBits();
+        this.paginas[indexAtual] = i * this.getTamanhoQuadroDeBytes();
         this.setIndex(indexAtual + 1);
     }
 
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
     public void alocarSegmentoStack(int i) {
         if (this.trinta) {
             this.isValid[30] = 1;
-            this.paginas[30] = i * this.getTamanhoQuadroDeBits();
+            this.paginas[30] = i * this.getTamanhoQuadroDeBytes();
             this.trinta = false;
         }
         this.isValid[31] = 1;
-        this.paginas[31] = i * this.getTamanhoQuadroDeBits();
+        this.paginas[31] = i * this.getTamanhoQuadroDeBytes();
     }
 
     public int getByteInicial() {
         return this.paginas[0];
     }
 
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
     public void alocarHeap(int indiceNaMemoria) {
         int n;
         for (n = 0; n < this.paginas.length; n++) {
@@ -156,6 +193,10 @@ public class TabelaDePaginas {
         this.isValid[n] = 1;
     }
 
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
     public ArrayList<Integer> removerHeap(int size) {
         ArrayList<Integer> indices = new ArrayList<Integer>(); 
 
@@ -177,15 +218,17 @@ public class TabelaDePaginas {
 
             if (this.isValid[i] == 1) {
 
+                /* Quando se retira mais do que o tamanho do heap mais recentemente alocado */
                 if (!this.stackByteFinal.empty() && this.stackByteFinal.peek() > this.paginas[i]) {
                     byteFinalHeap = this.stackByteFinal.pop();
                 }
 
+                /*  */
                 if (primeiraVez) {
-                    diferenca = byteFinalHeap - this.paginas[i]; // Ver se a subtração tá certa por causa daquilo de contar do 0
+                    diferenca = byteFinalHeap - this.paginas[i];
                     sum += diferenca;
 
-                    if (size >= diferenca) { // Maior ou maior igual
+                    if (size >= diferenca) {
                         indices.add(this.paginas[i] / 32);
                         this.isValid[i] = 0;
                     }
@@ -194,11 +237,11 @@ public class TabelaDePaginas {
                     continue;
                 }
 
-                if (sum + 32 <= size) { // Ver se posso tirar um bloco inteiro
+                if (sum + 32 <= size) { // Ver se é possível retirar um bloco inteiro
                     indices.add(this.paginas[i] / 32);
                     this.isValid[i] = 0;
                     sum += 32;
-                } else { // Se não puder, Tiro só a quantidade que falta
+                } else { // Se não puder, retira-se só a quantidade que falta dentro do bloco
                     int restante = size - (int)sum;
                     int novoByteFinalHeap = (this.paginas[i] + 32) - restante;
                     sum += restante;
@@ -212,23 +255,35 @@ public class TabelaDePaginas {
         return indices;
     }
 
+    /** 
+	 *  	
+	 * @param quantidadeHeap
+	 */
     private void aumentaHeapTotal(int quantidadeHeap) {
         this.heapTotal += quantidadeHeap;
     }
 
+    /** 
+	 *  	
+	 * @param quantidadeHeap  
+	 */
     private void diminuiHeapTotal(int quantidadeHeap) {
         this.heapTotal -= quantidadeHeap;
     }
 
-    public int getHeapTotal() {
-        return this.heapTotal;
-    }
-
+    /** 
+	 *  	
+	 * @return indices da memória que devem ser invalidados
+	 */
     public double faltando() {
         double byteFinal = (double)this.getByteFinalSegmentoDados();
         return (byteFinal % 32 != 0) ? ( Math.ceil( (byteFinal / 32) ) * 32) - 1 - byteFinal : 0;//
     }
 
+    /** 
+	 * Aloca memoria dinamica (heap) para um processo virtual carregado na memoria principal 	
+	 * @return indices da memória que devem ser invalidados
+	 */
     public ArrayList<Integer> excluirProcessoDaMemoria() {
         ArrayList<Integer> indices = new ArrayList<Integer>();
         
@@ -259,7 +314,7 @@ public class TabelaDePaginas {
             }
             validos += this.isValid[n] + ",";
         }
-        return "Validos : " + validos + "\nPaginas : " + pages + ".\n" + "Pro heap : " + (this.getByteFinalSegmentoDados());
+        return "Validos : " + validos + "\nPaginas : " + pages + ".\n";
     }
 
 }
