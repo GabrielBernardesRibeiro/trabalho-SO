@@ -4,7 +4,7 @@ Tabela de páginas.toString() não esa pronto : mostrar os bits não válidos?
 
 
 Falta colocar todas as exceções nos métodos : 
-						- loadProcessToMemory : FileFormatException; MemoryOverflowException; talvez mais algum NoSuchFileException
+						- MemoryOverflowException; talvez mais algum NoSuchFileException
 						- allocateMemoryToProcess : MemoryOverflowException; StackOverflowException
 
 
