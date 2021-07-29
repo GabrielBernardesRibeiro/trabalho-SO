@@ -17,6 +17,8 @@ public class MemoryManager implements ManagementInterface {
 
     private final int quantidadeQuadrosPilha = 2;
 
+    private final int quadrosDaMemoriaInsuficiente = -2;  
+
 
     public MemoryManager(int totalQuadrosParaGerenciar) {
         this.setTotalQuadrosParaGerenciar(totalQuadrosParaGerenciar);
@@ -44,7 +46,11 @@ public class MemoryManager implements ManagementInterface {
             // ---------------------------------//----------------------
 
             // ----------- Sessão de leitura do arquivo -----------
-            Scanner scannerArquivo = new Scanner(programaDoArquivo);
+            if (processName.contains(".txt") == false) {
+                throw new FileFormatException("Arquivo invalido.");
+            }
+
+            Scanner scannerArquivo = new Scanner(programaDoArquivo);//p1.txt [.txt]
             int contadorDeLeitura = 1;
             while(true) {   
                 int valorLeituraAtual;
@@ -99,7 +105,6 @@ public class MemoryManager implements ManagementInterface {
             
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
                 int id = entrada.getKey();
-                TabelaDePaginas valor = (TabelaDePaginas)entrada.getValue();
                 int entradaTamSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
                 int entradaTamSegDados = entrada.getValue().getTamanhoSegmentoDados();
                 
@@ -121,7 +126,7 @@ public class MemoryManager implements ManagementInterface {
 
             this.listaTabelaDePaginas.put(idDoProcessoAtual, tabelaPaginaAtual);
             this.listaDeProcessos.put(idDoProcessoAtual, nomeDoArquivo);
-            this.icrementarContadorId();
+            //this.icrementarContadorId();
 
             // 2. Alocar quadros para armazenar texto, dado e pilha
             int quantidadeQuadrosTexto = tabelaPaginaAtual.getQuantidadeQuadrosTexto();
@@ -135,6 +140,10 @@ public class MemoryManager implements ManagementInterface {
             }
 
             int retornoWorstFit = this.worstFit(tamanhoProcesso);
+
+            if (retornoWorstFit == this.quadrosDaMemoriaInsuficiente) {
+                throw new MemoryOverflowException("Quantidade requisitada superior a disponivel na memoria.");
+            }
 
             // ----------------- Parte de alocação da tabela de página
 
@@ -168,14 +177,14 @@ public class MemoryManager implements ManagementInterface {
                 
             }
             tabelaPaginaAtual.setByteFinalSegmentoDadosEstatico();
-        
-            System.out.println("Mapa de bits : " + this.getBitMap());
-            // ---------------------------------//------------------------------
-        
+
+            this.icrementarContadorId();
+            System.out.print("Identificador do processo carregado na memoria: " + idDoProcessoAtual + "\n");
+            
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        System.out.println("\n|-------------------------|\n");
+        
         return idDoProcessoAtual;
     }
 
@@ -191,6 +200,10 @@ public class MemoryManager implements ManagementInterface {
             double restoParaAlocar = (size < tbP.faltando()) ? 0 : size - tbP.faltando();
 
             int indiceParaAlocarHeap = this.worstFit(tbP.getQuantidadeDeQuadros((int)restoParaAlocar));
+
+            if (indiceParaAlocarHeap == this.quadrosDaMemoriaInsuficiente) {
+                throw new MemoryOverflowException("Quantidade requisitada superior a disponivel na memoria.");
+            }
 
             int proximoByteFinal = ( indiceParaAlocarHeap * 32 ) + (int)restoParaAlocar - 1;
 
@@ -219,8 +232,6 @@ public class MemoryManager implements ManagementInterface {
             if ( ( size - tbP.getHeapTotal() ) > 0)
                 throw new NoSuchMemoryException("Tamanho : " + size + " é maior que o tamanho total do heap.");
 
-            int novoByteFinal = tbP.getByteFinalSegmentoDados() - size;
-
             ArrayList<Integer> indicesNaMemoria = tbP.removerHeap(size);
 
             indicesNaMemoria.forEach(indice -> this.mapaDeBits[indice] = 0);
@@ -239,8 +250,6 @@ public class MemoryManager implements ManagementInterface {
                 throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
 
             TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
-            
-            boolean processoIgual = false;
 
             ArrayList<Integer> indicesDeTextoCompartilhado = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
@@ -251,7 +260,6 @@ public class MemoryManager implements ManagementInterface {
                 // Se processos iguais
                 if (entradaTamSegTexto == tbP.getTamanhoSegmentoTexto() && entradaTamSegDados == tbP.getTamanhoSegmentoDados() && this.listaDeProcessos.get(id).equals(this.listaDeProcessos.get(processId)) ) {
 
-                    processoIgual = true;
                     int quadrosTexto = entrada.getValue().getQuantidadeQuadrosTexto();
 
                     for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
@@ -394,7 +402,7 @@ public class MemoryManager implements ManagementInterface {
 	 * @return primeiro indice da memória ao qual os dados devem ser alocados 
 	 * @param tamanhoDeQuadros quantos quadros devem ser alocados
 	 */
-    private int worstFit(int tamanhoDeQuadros) {
+    private int worstFit(int tamanhoDeQuadrosProcesso) {
         int i = 0;
         int j;
         int nroQuadros = 0;
@@ -416,7 +424,11 @@ public class MemoryManager implements ManagementInterface {
                     j++;
                 }
 
-                if (nroQuadros > tamanhoDeQuadros) { // Se o processo caber nesse buraco
+                if (nroQuadros < tamanhoDeQuadrosProcesso) {
+                    return quadrosDaMemoriaInsuficiente;
+                }
+
+                if (nroQuadros >= tamanhoDeQuadrosProcesso) { // Se o processo caber nesse buraco
 
                     /* Se esse buraco for maior do que um já "avaliado" guarda o índice do primeiro quadro desse buraco */
                     if (nroQuadros > nroMaxQuadros) {

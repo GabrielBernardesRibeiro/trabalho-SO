@@ -43,7 +43,7 @@ public class Menu {
                     case "loadProcessToMemory":
                         nomeDoProcesso = listaDeComandos[1];
                         resultadoInt = memoryManager.loadProcessToMemory(nomeDoProcesso);
-                        System.out.print("Identificador do processo carregado na memoria: " + resultadoInt + "\n");
+                        
                         break;
                     
                     case "allocateMemoryToProcess":

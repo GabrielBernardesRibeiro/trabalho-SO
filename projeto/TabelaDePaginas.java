@@ -1,10 +1,6 @@
 package projeto;
-
 import java.util.Stack;
-
 import java.util.ArrayList;
-
-import java.util.*;
 
 public class TabelaDePaginas {
     private final int tamanhoQuadroDeBytes = 32;
@@ -277,7 +273,7 @@ public class TabelaDePaginas {
 	 */
     public double faltando() {
         double byteFinal = (double)this.getByteFinalSegmentoDados();
-        return (byteFinal % 32 != 0) ? ( Math.ceil( (byteFinal / 32) ) * 32) - 1 - byteFinal : 0;//
+        return (byteFinal % 32 != 0) ? ( Math.ceil( (byteFinal / 32) ) * 32) - 1 - byteFinal : 0;
     }
 
     /** 
