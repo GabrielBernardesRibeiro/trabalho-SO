@@ -28,7 +28,7 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public int loadProcessToMemory(String processName) {
-        int idDoProcessoAtual = 0; // Id do processo que será criado
+        int idDoProcessoAtual = this.contadorDeId; // Id do processo que será criado
         int tamanhoSegmentoTexto = 0; // Tamanho do segmento de texto
         int tamanhoSegmentoDados = 0; // Tamanho do segmento de dados
         String nomeDoArquivo = ""; // NomeDoArquivo
@@ -99,7 +99,6 @@ public class MemoryManager implements ManagementInterface {
             // ---------------------------------------------
 
             // ------------ Sessão de carregar o processo na memória -----------
-            idDoProcessoAtual = this.contadorDeId;
 
             ArrayList<Integer> posicoesNaMemoriaDoTexto = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             
@@ -147,32 +146,47 @@ public class MemoryManager implements ManagementInterface {
 
             // ----------------- Parte de alocação da tabela de página
 
+            if (processoIgual) {
+                for (int posicoes : posicoesNaMemoriaDoTexto) {
+                    tabelaPaginaAtual.alocarSegmentoTextoCompartilhado(0, posicoes);
+                }
+            } 
+
             int j = 0;
             for (int i = retornoWorstFit; i < retornoWorstFit + tamanhoProcesso; i++) 
             {
                 this.mapaDeBits[i] = 1;
 
-                if (j < quantidadeQuadrosTexto ) {
-                    if (processoIgual) {
-                        tabelaPaginaAtual.alocarSegmentoTextoCompartilhado(j, posicoesNaMemoriaDoTexto.get(j));    
-                        j++;
-                    } else {
+
+                if (!processoIgual) {
+                    if (j < quantidadeQuadrosTexto ) { // (1 <= 2) (0 < 2)
                         tabelaPaginaAtual.alocarSegmentoTexto(i);
                         j++;
+                        continue;
                     }
-                    continue;
-                }
-                
-                if (j >= quantidadeQuadrosTexto + quantidadeQuadrosDados ) {
-                    tabelaPaginaAtual.alocarSegmentoStack(i);
-                    j++;
-                    continue;
-                }
-                
-                if (j >= quantidadeQuadrosTexto ) {
-                    tabelaPaginaAtual.alocarSegmentoData(i);
-                    j++;
-                    continue;
+                    
+                    System.out.println("Antes de entrar na verificação de stack : j = " + j);
+                    if (j >= quantidadeQuadrosTexto + quantidadeQuadrosDados ) { 
+                        tabelaPaginaAtual.alocarSegmentoStack(i);
+                        j++;
+                        continue;
+                    }
+                    
+                    if (j >= quantidadeQuadrosTexto ) {
+                        tabelaPaginaAtual.alocarSegmentoData(i);
+                        j++;
+                        continue;
+                    }
+                } else { // Se processo igual
+                    if (j < quantidadeQuadrosDados ) { 
+                        tabelaPaginaAtual.alocarSegmentoData(i);
+                        j++;
+                        continue;
+                    }
+
+                    if (j >= quantidadeQuadrosDados) {
+                        tabelaPaginaAtual.alocarSegmentoStack(i);
+                    }
                 }
                 
             }
@@ -257,22 +271,46 @@ public class MemoryManager implements ManagementInterface {
                 int entradaTamSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
                 int entradaTamSegDados = entrada.getValue().getTamanhoSegmentoDados();
 
+                System.out.println("entradaTamSegTexto : " + entradaTamSegTexto);
+                System.out.println("entradaTamSegDados : " + entradaTamSegDados);
+                System.out.println("Antes do for");
+                
+                if (id == processId) // Analisando os mesmos processos
+                    continue; 
+
                 // Se processos iguais
                 if (entradaTamSegTexto == tbP.getTamanhoSegmentoTexto() && entradaTamSegDados == tbP.getTamanhoSegmentoDados() && this.listaDeProcessos.get(id).equals(this.listaDeProcessos.get(processId)) ) {
 
+                    System.out.println("Dentro do if");
                     int quadrosTexto = entrada.getValue().getQuantidadeQuadrosTexto();
+                    System.out.println("Quadro de texto = " + quadrosTexto);
 
                     for (int p = 0; p < quadrosTexto; p++) // Guarda os bytes base da memória do segmento de texto do programa que já foi carregado
                             indicesDeTextoCompartilhado.add(entrada.getValue().paginas[p]/32);
                 }
             }
 
+            System.out.println("Vai começar o for dos indices de texto compartilhados");
+            for (int indice : indicesDeTextoCompartilhado) {
+                System.out.println("Indice : " + indice);
+            }
+
+            // indices : todos os índices do processo
+            // indicesDeTextoCompartilhado : [0,1]
+
+            //[TC,TC,D,D,D,D,D,2TC,2TC,D,D,D,D,D]
             ArrayList<Integer> indices = tbP.excluirProcessoDaMemoria();
+            
+            for (int indice1 : indices) {
+                System.out.println("Indice : " + indice1);
+            }
+
 
             boolean compartilhado = false;
             for (int indice : indices) {
                 for (int elemento : indicesDeTextoCompartilhado) {
                     compartilhado = false;
+                    System.out.println("Elemento : " + elemento+ "=" + indice+ "(indice)?");
                     if (elemento == indice) {
                         compartilhado = true;
                         break;
@@ -410,7 +448,7 @@ public class MemoryManager implements ManagementInterface {
         int indiceDoMax = 0;
         int nroMaxQuadros = 0;
 
-        if (tamanhoDeQuadros == 0)
+        if (tamanhoDeQuadrosProcesso == 0)
             return -1;
 
         while(i < this.totalQuadrosParaGerenciar) {

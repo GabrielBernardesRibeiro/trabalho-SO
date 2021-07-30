@@ -277,7 +277,7 @@ public class TabelaDePaginas {
     }
 
     /** 
-	 * Aloca memoria dinamica (heap) para um processo virtual carregado na memoria principal 	
+	 *  	
 	 * @return indices da memória que devem ser invalidados
 	 */
     public ArrayList<Integer> excluirProcessoDaMemoria() {
@@ -303,8 +303,8 @@ public class TabelaDePaginas {
                 validos += this.isValid[n] + "]";
                 break;
             }
-            if (this.isValid[n] == 0 && this.paginas[n] != 0) {
-                pages += "x" + ",";
+            if (this.isValid[n] == 0) {
+                pages += " " + ",";
             } else {
                 pages += this.paginas[n] + ",";
             }
