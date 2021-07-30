@@ -521,5 +521,5 @@ public class MemoryManager implements ManagementInterface {
     {
         this.totalQuadrosParaGerenciar = totalQuadrosParaGerenciar;
     }
-    
+   
 }

@@ -321,5 +321,4 @@ public class TabelaDePaginas {
         }
         return "Validos : " + validos + "\nPaginas : " + pages + ".\n";
     }
-
 }
