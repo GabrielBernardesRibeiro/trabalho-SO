@@ -26,10 +26,10 @@ public class TabelaDePaginas {
 
     public TabelaDePaginas(int tamanhoSegmentoTexto, int tamanhoSegmentoDados) {
         this.setIndex(this.index);
-        this.tamanhoSegmentoTexto = tamanhoSegmentoTexto;
-        this.tamanhoSegmentoDados = tamanhoSegmentoDados;
-        this.quantidadeQuadrosTexto = this.getQuantidadeDeQuadros(tamanhoSegmentoTexto);
-        this.quantidadeQuadrosDados = this.getQuantidadeDeQuadros(tamanhoSegmentoDados);
+        this.setTamanhoSegmentoTexto(tamanhoSegmentoTexto);
+        this.setTamanhoSegmentoDados(tamanhoSegmentoDados);
+        this.setQuantidadeQuadrosTexto(tamanhoSegmentoTexto);
+        this.setQuantidadeQuadrosDados(tamanhoSegmentoDados);
     }
 
     public int getTamanhoSegmentoTexto()
@@ -37,9 +37,19 @@ public class TabelaDePaginas {
         return this.tamanhoSegmentoTexto;
     }
 
+    private void setTamanhoSegmentoTexto(int tamanhoSegmentoTexto)
+    {
+        this.tamanhoSegmentoTexto = tamanhoSegmentoTexto;
+    }
+
     public int getTamanhoSegmentoDados()
     {
         return this.tamanhoSegmentoDados;
+    }
+
+    private void setTamanhoSegmentoDados(int tamanhoSegmentoDados)
+    {
+        this.tamanhoSegmentoDados = tamanhoSegmentoDados;
     }
 
     public int getQuantidadeQuadrosTexto()
@@ -47,9 +57,19 @@ public class TabelaDePaginas {
         return this.quantidadeQuadrosTexto;
     }
 
+    private void setQuantidadeQuadrosTexto(int tamanhoSegmentoTexto)
+    {
+        this.quantidadeQuadrosTexto = this.getQuantidadeDeQuadros(tamanhoSegmentoTexto);
+    }
+
     public int getQuantidadeQuadrosDados()
     {
         return this.quantidadeQuadrosDados;
+    }
+
+    private void setQuantidadeQuadrosDados(int tamanhoSegmentoDados)
+    {
+        this.quantidadeQuadrosDados = this.getQuantidadeDeQuadros(tamanhoSegmentoDados);
     }
 
     public int getByteFinalSegmentoDados()
@@ -73,7 +93,7 @@ public class TabelaDePaginas {
 
     /** 
 	 *  	
-	 * @param quantidadeHeap  
+	 * Define o byte final do segmento de dados estático 
 	 */
     public void setByteFinalSegmentoDadosEstatico() {
         int comecoSegmentoDeDados = this.getQuantidadeQuadrosTexto(); // Se tem 2, o primeiro seg de dado tá no índice 2
@@ -83,8 +103,10 @@ public class TabelaDePaginas {
     }
 
     /** 
-	 *  	
-	 * @param quantidadeHeap  
+	 * Define o byte final do heap
+	 * @param byteFinal é o ultimo byte alocado
+     * @param aumentar controle para saber se aumenta ou diminui o heap total
+     * @param size é o tamanho que irá aumentar ou diminuir do heap
 	 */
     public void setByteFinalHeap(int byteFinal, boolean aumentar, int size) {
         if (aumentar)
@@ -96,8 +118,9 @@ public class TabelaDePaginas {
     }
 
     /** 
-	 *  	
-	 * @param quantidadeHeap  
+	 * Pega a quantidade de quadros	
+	 * @param totalDeBytes total de bytes que devem ser alocados
+     * @return retorna o total de quadros ncessários para alocar a quantidade de bytes passado
 	 */
     public int getQuantidadeDeQuadros(int totalDeBytes) {
         return (totalDeBytes % 32 != 0) ? (totalDeBytes / 32) + 1 : (totalDeBytes / 32);
@@ -105,8 +128,8 @@ public class TabelaDePaginas {
 
 
     /** 
-	 *  	
-	 * @param quantidadeHeap  
+	 * Aloca o segmento de texto
+	 * @param i é a quantidade de quadros que será alocado para um determinado seguimento de texto 
 	 */
     public void alocarSegmentoTexto(int i) {
         int indexAtual = this.index;
@@ -116,8 +139,9 @@ public class TabelaDePaginas {
     }
 
     /** 
-	 *  	
-	 * @param quantidadeHeap  
+	 * Aloca o segmento de texto compartilhado
+	 * @param i é a quantidade de quadros que será alocado para um determinado seguimento de texto compartilhado
+     * @param byteBase é a posição de uma página na memória
 	 */
     public void alocarSegmentoTextoCompartilhado(int i, int byteBase) {
         int indexAtual = this.index;
@@ -127,8 +151,8 @@ public class TabelaDePaginas {
     }
 
     /** 
-	 *  	
-	 * @param quantidadeHeap  
+	 * Aloca o segmento de data 	
+	 * @param i é a quantidade de quadros que será alocado para um determinado seguimento de dados   
 	 */
     public void alocarSegmentoData(int i) {
         int indexAtual = this.index;
@@ -138,8 +162,8 @@ public class TabelaDePaginas {
     }
 
     /** 
-	 *  	
-	 * @param quantidadeHeap  
+     * Aloca o segmento de pilha 	
+	 * @param i é a quantidade de quadros que será alocado para um determinado seguimento de pilha  
 	 */
     public void alocarSegmentoStack(int i) {
         if (this.trinta) {
@@ -151,13 +175,17 @@ public class TabelaDePaginas {
         this.paginas[31] = i * this.getTamanhoQuadroDeBytes();
     }
 
+    /**
+     * Pega o byte inicial
+     * @return retorna o byte inicial
+     */
     public int getByteInicial() {
         return this.paginas[0];
     }
 
     /** 
-	 *  	
-	 * @param quantidadeHeap  
+	 * Aloca a pilha	
+	 * @param indiceNaMemoria o indice do processo na memória  
 	 */
     public void alocarHeap(int indiceNaMemoria) {
         int n;
@@ -170,8 +198,9 @@ public class TabelaDePaginas {
     }
 
     /** 
-	 *  	
-	 * @param quantidadeHeap  
+	 * Remove o heap de uma tabela de processo 	
+	 * @param size  a quantidade reduzida para o heap de uma tabela de processo
+     * @return retorna um ArrayList de indices
 	 */
     public ArrayList<Integer> removerHeap(int size) {
         ArrayList<Integer> indices = new ArrayList<Integer>(); 
@@ -232,23 +261,23 @@ public class TabelaDePaginas {
     }
 
     /** 
-	 *  	
-	 * @param quantidadeHeap
+	 * Aumenta o heap total 	
+	 * @param quantidadeHeap o tamanho alocado do heap para a tabela de processo de um processo
 	 */
     private void aumentaHeapTotal(int quantidadeHeap) {
         this.heapTotal += quantidadeHeap;
     }
 
     /** 
-	 *  	
-	 * @param quantidadeHeap  
+	 * Diminui o heap total 
+	 * @param quantidadeHeap  o tamanho reduzido do heap para a tabela de processo de um processo
 	 */
     private void diminuiHeapTotal(int quantidadeHeap) {
         this.heapTotal -= quantidadeHeap;
     }
 
     /** 
-	 *  	
+	 * Define a quantidade de indices livres da memória 	
 	 * @return indices da memória que devem ser invalidados
 	 */
     public double faltando() {
@@ -257,7 +286,7 @@ public class TabelaDePaginas {
     }
 
     /** 
-	 * Aloca memoria dinamica (heap) para um processo virtual carregado na memoria principal 	
+	 * Seleciona todas as páginas válidas para a exclusão do processo na memória	
 	 * @return indices da memória que devem ser invalidados
 	 */
     public ArrayList<Integer> excluirProcessoDaMemoria() {
@@ -283,8 +312,8 @@ public class TabelaDePaginas {
                 validos += this.isValid[n] + "]";
                 break;
             }
-            if (this.isValid[n] == 0 && this.paginas[n] != 0) {
-                pages += "x" + ",";
+            if (this.isValid[n] == 0) {
+                pages += " " + ",";
             } else {
                 pages += this.paginas[n] + ",";
             }
