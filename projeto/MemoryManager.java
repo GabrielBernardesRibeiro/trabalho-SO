@@ -21,9 +21,13 @@ public class MemoryManager implements ManagementInterface {
 
 
     public MemoryManager(int totalQuadrosParaGerenciar) {
-        this.setTotalQuadrosParaGerenciar(totalQuadrosParaGerenciar);
-        this.inicializarMapaDeBits(totalQuadrosParaGerenciar);
-        this.setContadorId( this.idInicial );
+        this.totalQuadrosParaGerenciar = totalQuadrosParaGerenciar;
+        this.mapaDeBits = new int[totalQuadrosParaGerenciar];//Atribui o valor "0" a todos os bits do mapa de bits
+        for (int i = 0; i < this.mapaDeBits.length; i++) 
+        {
+            this.mapaDeBits[i] = 0;
+        }
+        this.contadorDeId = this.idInicial;
     }
 
     @Override
@@ -31,7 +35,7 @@ public class MemoryManager implements ManagementInterface {
         int idDoProcessoAtual = 0; // Id do processo que será criado
         int tamanhoSegmentoTexto = 0; // Tamanho do segmento de texto
         int tamanhoSegmentoDados = 0; // Tamanho do segmento de dados
-        String nomeDoArquivo = ""; // NomeDoArquivo
+        String nomeDoArquivo = ""; // Inicializa nome do arquivo
         boolean processoIgual = false; // Caso o processo a ser carregado for igual a um processo já carregado
 
         try {   
@@ -50,7 +54,9 @@ public class MemoryManager implements ManagementInterface {
                 throw new FileFormatException("Arquivo invalido.");
             }
 
-            Scanner scannerArquivo = new Scanner(programaDoArquivo);//p1.txt [.txt]
+            Scanner scannerArquivo = new Scanner(programaDoArquivo);//Carrega o arquivo em um scanner
+
+            //---------- Valida arquivo aberto ----------//
             int contadorDeLeitura = 1;
             while(true) {   
                 int valorLeituraAtual;
@@ -99,12 +105,11 @@ public class MemoryManager implements ManagementInterface {
             // ---------------------------------------------
 
             // ------------ Sessão de carregar o processo na memória -----------
-            idDoProcessoAtual = this.getContadorId();
+            idDoProcessoAtual = this.contadorDeId;
 
             ArrayList<Integer> posicoesNaMemoriaDoTexto = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
-                System.out.println("\n\n Entrada : " + entrada + " \n\n");
                 int id = entrada.getKey();
                 int entradaTamSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
                 int entradaTamSegDados = entrada.getValue().getTamanhoSegmentoDados();
@@ -196,11 +201,11 @@ public class MemoryManager implements ManagementInterface {
             if(!this.listaTabelaDePaginas.containsKey(processId))
                 throw new InvalidProcessException("O processo de Id = " + processId + " é inválido.");
                 
-            TabelaDePaginas tbP = this.listaTabelaDePaginas.get(processId);
+            TabelaDePaginas tabelaDePagina = this.listaTabelaDePaginas.get(processId);
             
-            double restoParaAlocar = (size < tbP.faltando()) ? 0 : size - tbP.faltando();
+            double restoParaAlocar = (size < tabelaDePagina.faltando()) ? 0 : size - tabelaDePagina.faltando();
 
-            int indiceParaAlocarHeap = this.worstFit(tbP.getQuantidadeDeQuadros((int)restoParaAlocar));
+            int indiceParaAlocarHeap = this.worstFit(tabelaDePagina.getQuantidadeDeQuadros((int)restoParaAlocar));
 
             if (indiceParaAlocarHeap == this.quadrosDaMemoriaInsuficiente) {
                 throw new MemoryOverflowException("Quantidade requisitada superior a disponivel na memoria.");
@@ -208,11 +213,11 @@ public class MemoryManager implements ManagementInterface {
 
             int proximoByteFinal = ( indiceParaAlocarHeap * 32 ) + (int)restoParaAlocar - 1;
 
-            for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tbP.getQuantidadeDeQuadros((int)restoParaAlocar); i++) { 
-                tbP.alocarHeap(i);
+            for (int i = indiceParaAlocarHeap; i < indiceParaAlocarHeap + tabelaDePagina.getQuantidadeDeQuadros((int)restoParaAlocar); i++) { 
+                tabelaDePagina.alocarHeap(i);
                 this.mapaDeBits[i] = 1;
             }
-            tbP.setByteFinalHeap(proximoByteFinal, true, size);
+            tabelaDePagina.setByteFinalHeap(proximoByteFinal, true, size);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -255,11 +260,11 @@ public class MemoryManager implements ManagementInterface {
             ArrayList<Integer> indicesDeTextoCompartilhado = new ArrayList<Integer>(); // Novo array de memorias compartilhadas
             for (HashMap.Entry<Integer,TabelaDePaginas> entrada : this.listaTabelaDePaginas.entrySet()) {
                 int id = entrada.getKey();
-                int entradaTamSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
-                int entradaTamSegDados = entrada.getValue().getTamanhoSegmentoDados();
+                int entradaTamanhoSegTexto = entrada.getValue().getTamanhoSegmentoTexto();
+                int entradaTamanhoSegDados = entrada.getValue().getTamanhoSegmentoDados();
 
                 // Se processos iguais
-                if (entradaTamSegTexto == tbP.getTamanhoSegmentoTexto() && entradaTamSegDados == tbP.getTamanhoSegmentoDados() && this.listaDeProcessos.get(id).equals(this.listaDeProcessos.get(processId)) ) {
+                if (entradaTamanhoSegTexto == tbP.getTamanhoSegmentoTexto() && entradaTamanhoSegDados == tbP.getTamanhoSegmentoDados() && this.listaDeProcessos.get(id).equals(this.listaDeProcessos.get(processId)) ) {
 
                     int quadrosTexto = entrada.getValue().getQuantidadeQuadrosTexto();
 
@@ -286,12 +291,6 @@ public class MemoryManager implements ManagementInterface {
 
             this.listaTabelaDePaginas.remove(processId);
             this.listaDeProcessos.remove(processId); 
-
-            System.out.println("lista tabela de páginas : " + this.listaTabelaDePaginas.toString());
-
-            System.out.println("lista de processos : " + this.listaDeProcessos.toString());
-
-            System.out.println("bit map : " + this.getBitMap());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -310,7 +309,7 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public int getPhysicalAddress(int processId, int logicalAddress) {
-        int enderecoFisico = 0; ///// ???????????????
+        int enderecoFisico = 0;
 
         try {
 
@@ -398,6 +397,11 @@ public class MemoryManager implements ManagementInterface {
     }
 
 
+    /** 
+     * Determina o índice ao qual os dados passados devem ser alocados deixando o maior espaço livre possível
+	 * @return primeiro indice da memória ao qual os dados devem ser alocados 
+	 * @param tamanhoDeQuadros quantos quadros devem ser alocados
+	 */
     private int worstFit(int tamanhoDeQuadrosProcesso) {
         int i = 0;
         int j;
@@ -414,6 +418,7 @@ public class MemoryManager implements ManagementInterface {
                 nroQuadros = 0;
                 indice = i;
                 j = i;
+                /* Conta quantos quadros estão livres em um buraco */
                 while (j < this.mapaDeBits.length && this.mapaDeBits[j] != 1 ) {
                     nroQuadros++;
                     j++;
@@ -423,7 +428,9 @@ public class MemoryManager implements ManagementInterface {
                     return quadrosDaMemoriaInsuficiente;
                 }
 
-                if (nroQuadros >= tamanhoDeQuadrosProcesso) {
+                if (nroQuadros >= tamanhoDeQuadrosProcesso) { // Se o processo caber nesse buraco
+
+                    /* Se esse buraco for maior do que um já "avaliado" guarda o índice do primeiro quadro desse buraco */
                     if (nroQuadros > nroMaxQuadros) {
                         nroMaxQuadros = nroQuadros;
                         indiceDoMax = indice;
@@ -436,38 +443,28 @@ public class MemoryManager implements ManagementInterface {
         return indiceDoMax;
     }
 
+    /** 
+	 *  Incrementa o contador de Id em uma unidade  
+	 */
+    public void icrementarContadorId()
+    {
+        this.contadorDeId += 1 ;
+    }
+
+    /** 
+	 *  Retorna o valor atual do contador de processos  
+	 */
     public int getContadorId()
     {
         return ( this.contadorDeId );
     }
 
+    /** 
+	 *  Define o novo valor do contador de processos
+	 */
     public void setContadorId(int contadorNovoValor)
     {
         this.contadorDeId = contadorNovoValor;
-    }
-
-    public void icrementarContadorId()
-    {
-        this.setContadorId( this.getContadorId() + 1 );
-    }
-
-    public int getTotalQuadrosParaGerenciar()
-    {
-        return ( this.totalQuadrosParaGerenciar );
-    }
-
-    public void setTotalQuadrosParaGerenciar(int totalQuadrosParaGerenciar)
-    {
-        this.totalQuadrosParaGerenciar = totalQuadrosParaGerenciar;
-    }
-
-    public void inicializarMapaDeBits(int tamanhoMapaDeBits)
-    {
-        this.mapaDeBits = new int[tamanhoMapaDeBits];
-        for (int i = 0; i < this.mapaDeBits.length; i++) 
-        {
-            this.mapaDeBits[i] = 0;
-        }
     }
     
 }
